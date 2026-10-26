@@ -18,7 +18,8 @@ import {
   Sparkles, 
   Bookmark, 
   Compass, 
-  Layers
+  Layers,
+  Trophy
 } from 'lucide-react';
 
 export default function App() {
@@ -51,28 +52,21 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sharePill, setSharePill] = useState(null);
 
-  // Fetch all data
+  // Fetch all data safely
   useEffect(() => {
     async function loadAllData() {
-      try {
-        const [
-          pillsRes,
-          anomaliesRes,
-          circuitsRes,
-          lineagesRes,
-          driversRes,
-          calendarRes,
-          standingsRes
-        ] = await Promise.all([
-          fetch('/data/pills.json'),
-          fetch('/data/anomalies.json'),
-          fetch('/data/circuits.json'),
-          fetch('/data/lineages.json'),
-          fetch('/data/drivers.json'),
-          fetch('/data/calendar.json'),
-          fetch('/data/standings_2026.json')
-        ]);
+      const fetchJson = async (url, fallback) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          console.warn(`Failed to fetch ${url}:`, err);
+          return fallback;
+        }
+      };
 
+      try {
         const [
           pillsData,
           anomaliesData,
@@ -82,21 +76,21 @@ export default function App() {
           calendarData,
           standingsData
         ] = await Promise.all([
-          pillsRes.json(),
-          anomaliesRes.json(),
-          circuitsRes.json(),
-          lineagesRes.json(),
-          driversRes.json(),
-          calendarRes.json(),
-          standingsRes.json()
+          fetchJson('/data/pills.json', []),
+          fetchJson('/data/anomalies.json', []),
+          fetchJson('/data/circuits.json', []),
+          fetchJson('/data/lineages.json', []),
+          fetchJson('/data/drivers.json', []),
+          fetchJson('/data/calendar.json', []),
+          fetchJson('/data/standings_2026.json', null)
         ]);
 
-        setPills(pillsData);
-        setAnomalies(anomaliesData);
-        setCircuits(circuitsData);
-        setLineages(lineagesData);
-        setDrivers(driversData);
-        setCalendar(calendarData);
+        setPills(pillsData || []);
+        setAnomalies(anomaliesData || []);
+        setCircuits(circuitsData || []);
+        setLineages(lineagesData || []);
+        setDrivers(driversData || []);
+        setCalendar(calendarData || []);
         setStandings(standingsData);
       } catch (err) {
         console.error("Errore nel caricamento dei dati:", err);
