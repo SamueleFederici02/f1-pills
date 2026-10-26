@@ -1,452 +1,516 @@
 # pipeline/generate_pills.py
-import csv
+"""
+F1 Stats Pills — Generatore di Pillole Attuali sui Piloti di Oggi.
+Ogni pillola riguarda un pilota ATTIVO nella griglia contemporanea (2024-2026),
+confrontando le sue statistiche e anomalie con la storia della Formula 1 dal 1950.
+"""
+
 import json
-import unicodedata
 from pathlib import Path
-from datetime import datetime
-from collections import defaultdict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-DOWNLOADS_DIR = BASE_DIR / "data"
+PUBLIC_DATA_DIR = BASE_DIR / "public" / "data"
+PUBLIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# Input files
-RACE_RESULTS_FILE = DATA_DIR / "race_results.csv"
-RACES_DETAILS_FILE = DATA_DIR / "races_details.csv"
-DRIVERS_META_FILE = DATA_DIR / "drivers_meta.csv"
-CIRCUITS_FILE = DATA_DIR / "circuit_predicates.csv"
-TRIVIA_FILE = DATA_DIR / "anomalies_and_trivia.csv"
+OUTPUT_FILE = DATA_DIR / "pills.json"
 
-# Output files
-PILLS_DATA_FILE = DATA_DIR / "pills.json"
-PILLS_DOWNLOADS_FILE = DOWNLOADS_DIR / "pills.json"
-
-def strip_accents(s):
-    if not s:
-        return ""
-    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
-
-# 1. Load Circuits and build alias lookup
-with open(CIRCUITS_FILE, encoding='utf-8') as f:
-    circuits_list = list(csv.DictReader(f))
-
-circuits_by_id = {c['circuit_id']: c for c in circuits_list}
-
-CIRCUIT_ALIAS = {
-    'yas-marina': 'yas_marina',
-    'marina-bay': 'marina_bay',
-    'watkins-glen': 'watkins_glen',
-    'long-beach': 'long_beach',
-    'brands-hatch': 'brands_hatch',
-    'magny-cours': 'magny_cours',
-    'paul-ricard': 'ricard',
-    'spa-francorchamps': 'spa',
-    'spielberg': 'red_bull_ring',
-    'montreal': 'villeneuve',
-    'melbourne': 'albert_park',
-    'austin': 'americas',
-    'mexico-city': 'rodriguez',
-    'caesars-palace': 'vegas',
-    'las-vegas': 'las_vegas',
-    'lusail': 'losail',
-    'buenos-aires': 'galvez',
-    'porto': 'boavista',
-    'mont-tremblant': 'tremblant',
-    'clermont-ferrand': 'charade',
-    'rouen': 'essarts',
-    'aida': 'okayama',
-    'bugatti': 'lemans',
-    'east-london': 'george',
-    'sirius': 'sochi'
-}
-
-def resolve_circuit(cid):
-    if not cid:
-        return None
-    cid = cid.lower().strip()
-    if cid in circuits_by_id:
-        return circuits_by_id[cid]
-    mapped = CIRCUIT_ALIAS.get(cid)
-    if mapped and mapped in circuits_by_id:
-        return circuits_by_id[mapped]
-    # Try underscore replacement
-    clean = cid.replace('-', '_')
-    if clean in circuits_by_id:
-        return circuits_by_id[clean]
-    return None
-
-# 2. Load Races Details
-with open(RACES_DETAILS_FILE, encoding='utf-8') as f:
-    races_list = list(csv.DictReader(f))
-
-races_by_id = {}
-for r in races_list:
-    rid = int(r['id'])
-    cid = r.get('circuitId')
-    circuit = resolve_circuit(cid)
-    r['resolved_circuit'] = circuit
-    races_by_id[rid] = r
-
-# 3. Load Drivers and build alias lookup
-with open(DRIVERS_META_FILE, encoding='utf-8') as f:
-    drivers_list = list(csv.DictReader(f))
-
-drivers_by_id = {d['driver_id']: d for d in drivers_list}
-
-DRIVER_MANUAL_ALIAS = {
-    'carlos-sainz-jr': 'sainz',
-    'juan-manuel-fangio': 'fangio',
-    'alex-zanardi': 'zanardi',
-    'max-papis': 'papis',
-    'emmanuel-de-graffenried': 'graffenried',
-    'kimi-antonelli': 'antonelli',
-    'maria-teresa-de-filippis': 'de_filippis',
-    'alejandro-de-tomaso': 'de_tomaso',
-    'kurt-ahrens-jr': 'ahrens',
-    'jerry-unser-jr': 'jerry_unser',
-    'anthony-joseph-foyt': 'foyt',
-    'birabongse-bhanudej': 'bira',
-    'yves-giraud-cabantous': 'cabantous',
-    'spider-webb': 'webb',
-    'jac-nellemann': 'nelleman',
-    'karl-gunther-bechem': 'bechem',
-    'william-ferguson': 'ferguson',
-    'jean-claude-rudaz': 'rudaz',
-    'xavier-perrot': 'perrot',
-    'willi-krakau': 'krakau',
-    'geoffrey-crossley': 'crossley',
-    'oscar-alfredo-galvez': 'galvez',
-    'hermano-da-silva-ramos': 'da_silva_ramos',
-    'helm-glockler': 'glockler',
-    'adolfo-schwelm-cruz': 'schwelm_cruz',
-    'asdrubal-fontes-bayardo': 'fontes',
-    'masami-kuwashima': 'kuwashima',
-    'david-kennedy': 'kennedy',
-    'harry-merkel': 'merkel',
-    'ludwig-fischer': 'fischer'
-}
-
-driver_lookup = {}
-for d in drivers_list:
-    # Key by normalized full name
-    norm_name = strip_accents(d['name'].lower()).replace(' ', '-').replace('.', '').replace("'", "")
-    driver_lookup[norm_name] = d
-    # Key by driver_id
-    driver_lookup[d['driver_id'].replace('_', '-')] = d
-    driver_lookup[d['driver_id']] = d
-
-for k, target_id in DRIVER_MANUAL_ALIAS.items():
-    if target_id in drivers_by_id:
-        driver_lookup[k] = drivers_by_id[target_id]
-
-def resolve_driver(raw_did):
-    if not raw_did:
-        return None
-    clean = strip_accents(raw_did.lower()).replace('.', '').replace("'", "")
-    if clean in driver_lookup:
-        return driver_lookup[clean]
-    # Fallback by last name
-    tokens = clean.split('-')
-    last = tokens[-1]
-    if last in drivers_by_id:
-        return drivers_by_id[last]
-    return None
-
-# 4. Process Race Results and Aggregate Stats
-# Structure per driver:
-# {
-#    'races_count': int,
-#    'wins': list of (result, race, circuit),
-#    'podiums': list of (result, race, circuit),
-#    'finishes': list of (result, race, circuit)
-# }
-driver_stats = defaultdict(lambda: {'races': [], 'wins': [], 'podiums': []})
-
-with open(RACE_RESULTS_FILE, encoding='utf-8') as f:
-    for row in csv.DictReader(f):
-        try:
-            rid = int(row['raceId'])
-        except ValueError:
-            continue
-        race = races_by_id.get(rid)
-        if not race:
-            continue
-        
-        driver = resolve_driver(row['driverId'])
-        if not driver:
-            continue
-        
-        did = driver['driver_id']
-        circuit = race['resolved_circuit']
-        
-        item = {'row': row, 'race': race, 'circuit': circuit, 'driver': driver}
-        driver_stats[did]['races'].append(item)
-        
-        pos_str = row.get('positionNumber') or row.get('positionDisplayOrder', '')
-        if pos_str.isdigit():
-            pos = int(pos_str)
-            if pos == 1:
-                driver_stats[did]['wins'].append(item)
-            if pos in (1, 2, 3):
-                driver_stats[did]['podiums'].append(item)
-
-print(f"Aggregated results for {len(driver_stats)} drivers.")
-
-# 5. GENERATE PILLS
-pills = []
-pill_id_counter = 1000
-
-# ------------------------------------------------------------------------------
-# A. CURATED ANOMALIES & TRIVIA (107 Records)
-# ------------------------------------------------------------------------------
-CATEGORY_ABSURD = {
-    'finish_anomalies': 0.88,
-    'historic_milestones': 0.70,
-    'heroic_drives': 0.75,
-    'bizarre_moments': 0.95,
-    'chaos_races': 0.90,
-    'scandals': 0.82
-}
-
-with open(TRIVIA_FILE, encoding='utf-8') as f:
-    for r in csv.DictReader(f):
-        cat = r.get('category', 'historic_milestones')
-        absurd = CATEGORY_ABSURD.get(cat, 0.75)
-        keywords = [k.strip() for k in r.get('keywords', '').split(';') if k.strip()]
-        
-        pill = {
-            "id": f"trivia_{r['id']}",
-            "pattern": f"trivia_{cat}",
-            "subject": f"driver:{r['driver_id']}" if r.get('driver_id') and r['driver_id'] != 'all' else f"team:{r.get('constructor_id', 'f1')}",
-            "title": r['title'],
-            "subtext": r['description'],
-            "category": cat,
-            "year": int(r['year']) if r['year'].isdigit() else 2024,
-            "grand_prix": r['grand_prix'],
-            "circuit_id": r['circuit_id'],
-            "absurd": absurd,
-            "state": "storica",
-            "keywords": keywords,
-            "badge": f"{r['year']} • {r['grand_prix']}"
-        }
-        pills.append(pill)
-
-print(f"Added {len(pills)} curated anomalies.")
-
-# ------------------------------------------------------------------------------
-# B. BIRTHDAY WINS (Jean Alesi, James Hunt) & BIRTHDAY PODIUMS
-# ------------------------------------------------------------------------------
-for did, stats in driver_stats.items():
-    driver = drivers_by_id.get(did)
-    if not driver:
-        continue
-    dob = driver.get('birth_date', '')
-    if not dob or len(dob) < 10:
-        continue
-    dob_month_day = dob[5:10] # MM-DD
-    
-    for item in stats['wins']:
-        race_date = item['race'].get('date', '')
-        if race_date and race_date[5:10] == dob_month_day:
-            pill_id_counter += 1
-            age = int(race_date[:4]) - int(dob[:4])
-            pills.append({
-                "id": f"pill_{pill_id_counter}",
-                "pattern": "birthday_win",
-                "subject": f"driver:{did}",
-                "title": f"{driver['name']} ha vinto nel giorno del suo {age}° compleanno!",
-                "subtext": f"Vittoria conseguita esattamente il {race_date} nel Gran Premio di {item['race'].get('officialName', '')}. In oltre 75 anni di F1, solo 2 piloti hanno mai trionfato nel giorno esatto della propria nascita.",
-                "category": "historic_milestones",
-                "year": int(race_date[:4]),
-                "circuit_id": item['circuit']['circuit_id'] if item['circuit'] else 'unknown',
-                "absurd": 0.85,
-                "state": "storica",
-                "keywords": [driver['name'].lower(), "compleanno", "birthday win", did, "record unico"],
-                "badge": "COMPLEANNO VINCENTE"
-            })
-
-# ------------------------------------------------------------------------------
-# C. LEFT-HANDED DOMINANCE (Ayrton Senna, Fernando Alonso, Jenson Button, etc.)
-# ------------------------------------------------------------------------------
-left_handed_summary = []
-for did in ['senna', 'alonso', 'button', 'webber', 'herbert']:
-    if did in driver_stats:
-        driver = drivers_by_id[did]
-        wins = len(driver_stats[did]['wins'])
-        podiums = len(driver_stats[did]['podiums'])
-        races = len(driver_stats[did]['races'])
-        pill_id_counter += 1
-        pills.append({
-            "id": f"pill_{pill_id_counter}",
-            "pattern": "left_handed_champion",
-            "subject": f"driver:{did}",
-            "title": f"{driver['name']}: Trionfi storici con la mano sinistra",
-            "subtext": f"{driver['name']} è uno dei rarissimi campioni mancini documentati in F1: ha collezionato {wins} vittorie e {podiums} podi su {races} gare disputate.",
-            "category": "historic_milestones",
-            "year": 2024,
-            "circuit_id": "all",
-            "absurd": 0.65,
-            "state": "storica",
-            "keywords": [driver['name'].lower(), "mancino", "left-handed", "fisiologia", did],
-            "badge": "PILOTA MANCINO"
-        })
-
-# ------------------------------------------------------------------------------
-# D. PREDICATES COMBINATORICS (Solo in P / Mai in P)
-# ------------------------------------------------------------------------------
-PREDICATES_CONFIG = [
-    # (key, name_it, condition_desc, absurd_score)
-    ('counter_clockwise', 'circuiti in senso antiorario', 'circuiti percorsi in senso antiorario (Interlagos, COTA, Baku, Yas Marina, Jeddah, Imola)', 0.70),
-    ('night_race', 'gare in notturna artificiale', 'Gran Premi disputati sotto la luce artificiale dei riflettori (Singapore, Bahrain, Jeddah, Lusail, Las Vegas)', 0.68),
-    ('zero_income_tax', 'paesi a tassazione zero sul reddito', 'paesi a imposta federale zero sul reddito personale (Monaco, Bahrain, Arabia Saudita, UAE, Qatar)', 0.85),
-    ('equal_marriage_legal', 'paesi con matrimonio egualitario', 'nazioni che riconoscono per legge il matrimonio egualitario', 0.82),
-    ('high_altitude', 'tracciati ad alta quota (>600m)', 'circuiti situati a oltre 600m sul livello del mare (Città del Messico, Kyalami, Interlagos, Red Bull Ring)', 0.72),
-    ('coastal_circuit', 'circuiti marittimi a <5km dal mare', 'tracciati situati a meno di 5 km dal mare o oceano (Zandvoort, Monaco, Jeddah, Melbourne, Suzuka, Miami)', 0.74),
-    ('street_circuit', 'circuiti cittadini e stradali', 'tracciati urbani temporanei o semi-permanenti (Monaco, Baku, Singapore, Las Vegas, Miami, Melbourne)', 0.60),
-    ('e171_food_legal', 'paesi dove il biossido di titanio è legale', 'paesi in cui l\'additivo alimentare E171 è consentito per legge (USA, UK, Giappone, Australia, Bahrain)', 0.92)
-]
-
-for pred_key, pred_label, pred_desc, pred_absurd in PREDICATES_CONFIG:
-    for did, stats in driver_stats.items():
-        wins = stats['wins']
-        podiums = stats['podiums']
-        driver = drivers_by_id.get(did)
-        if not driver:
-            continue
-        
-        # 1. Pattern: SOLO IN P (Almeno 2 o 3 vittorie, e TUTTE ricadono in circuiti con la proprietà)
-        if len(wins) >= 2:
-            wins_in_pred = [w for w in wins if w['circuit'] and w['circuit'].get(pred_key) == '1']
-            if len(wins_in_pred) == len(wins):
-                distinct_circuits = set(w['circuit']['circuit_id'] for w in wins if w['circuit'])
-                if len(distinct_circuits) >= 2:
-                    circ_names = ", ".join(set(w['circuit']['circuit_name'] for w in wins if w['circuit']))
-                    pill_id_counter += 1
-                    pills.append({
-                        "id": f"pill_{pill_id_counter}",
-                        "pattern": f"solo_in_{pred_key}",
-                        "subject": f"driver:{did}",
-                        "title": f"{driver['name']} ha vinto solo in {pred_label}",
-                        "subtext": f"{len(wins)} vittorie su {len(wins)} in carriera conquistate esclusivamente su {pred_desc} ({circ_names}).",
-                        "category": "bizarre_moments",
-                        "year": int(wins[-1]['race']['year']),
-                        "circuit_id": wins[-1]['circuit']['circuit_id'] if wins[-1]['circuit'] else 'unknown',
-                        "absurd": pred_absurd,
-                        "state": "storica",
-                        "keywords": [driver['name'].lower(), pred_key, pred_label, did, "correlazione"],
-                        "badge": f"{len(wins)} VITTORIE SU {len(wins)}"
-                    })
-        
-        # 2. Pattern: SPECIALISTA DEL PODIO IN P (Almeno 4 podi, tutti o 90%+ in P)
-        if len(podiums) >= 4:
-            podiums_in_pred = [p for p in podiums if p['circuit'] and p['circuit'].get(pred_key) == '1']
-            pct = len(podiums_in_pred) / len(podiums)
-            if pct == 1.0:
-                distinct_circuits = set(p['circuit']['circuit_id'] for p in podiums if p['circuit'])
-                if len(distinct_circuits) >= 2:
-                    pill_id_counter += 1
-                    pills.append({
-                        "id": f"pill_{pill_id_counter}",
-                        "pattern": f"podiums_solo_in_{pred_key}",
-                        "subject": f"driver:{did}",
-                        "title": f"Tutti i {len(podiums)} podi di {driver['name']} sono arrivati in {pred_label}",
-                        "subtext": f"Il 100% dei suoi arrivi nei primi 3 ({len(podiums)} su {len(podiums)}) è avvenuto in {pred_desc}.",
-                        "category": "bizarre_moments",
-                        "year": int(podiums[-1]['race']['year']),
-                        "circuit_id": podiums[-1]['circuit']['circuit_id'] if podiums[-1]['circuit'] else 'unknown',
-                        "absurd": round(pred_absurd * 0.9, 2),
-                        "state": "storica",
-                        "keywords": [driver['name'].lower(), pred_key, "podi", did],
-                        "badge": "100% DEI PODI"
-                    })
-
-# ------------------------------------------------------------------------------
-# E. DEBUNKED TABOO (Kimi Antonelli & Biossido di Titanio)
-# ------------------------------------------------------------------------------
-pill_id_counter += 1
-pills.append({
-    "id": f"pill_{pill_id_counter}",
-    "pattern": "tabu_sfatato",
-    "subject": "driver:antonelli",
-    "title": "Kimi Antonelli: Il Tabù Sfatato del Biossido di Titanio",
-    "subtext": "Nato come celebre meme statistico nel 2024 (quando vinceva fuori dall'UE dove l'additivo E171 è consentito nel cibo), il tabù è stato definitivamente polverizzato nei mesi scorsi durante la stagione europea 2026, con i trionfi a Barcellona, Spa e Monza nella sua cavalcata mondiale.",
-    "category": "bizarre_moments",
+# Catalogo ricchissimo di Pillole ATTUALI per i piloti contemporanei
+MODERN_PILLS = [
+  # --------------------------------------------------------------------------
+  # MAX VERSTAPPEN
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_verstappen_1",
+    "driver_id": "max_verstappen",
+    "driver_name": "Max Verstappen",
+    "team": "red_bull",
+    "category": "active_records",
+    "badge": "RECORD STORICO ATTIVO",
+    "title": "Verstappen: Vittoria da 10 posizioni diverse in griglia",
+    "subtext": "Con la leggendaria rimonta dalla 17ª posizione a Interlagos, Max Verstappen ha eguagliato il record assoluto di Fernando Alonso: ha vinto partendo da 10 caselle differenti della griglia (1°, 2°, 3°, 4°, 6°, 7°, 9°, 10°, 14° e 17°).",
+    "delirio_text": "Nessun altro pilota nella storia della F1 ha mai trionfato partendo da così tante caselle diverse. Schumacher e Hamilton si sono fermati rispettivamente a 8 e 7 posizioni.",
+    "year": 2024,
+    "circuit_id": "interlagos",
+    "absurd": 0.82,
+    "state": "attuale",
+    "keywords": ["verstappen", "rimonta", "interlagos", "griglia", "alonso", "partenza"],
+    "subject": "driver:max_verstappen"
+  },
+  {
+    "id": "pill_cur_verstappen_2",
+    "driver_id": "max_verstappen",
+    "driver_name": "Max Verstappen",
+    "team": "red_bull",
+    "category": "active_records",
+    "badge": "EGEMONIA SPRINT",
+    "title": "Re delle Sprint: Oltre il 70% di trionfi al Sabato",
+    "subtext": "Dall'introduzione del format Sprint nel 2021 a oggi, Max Verstappen ha vinto oltre il 70% delle gare veloci del sabato. Nessun pilota contemporaneo vanta una percentuale di successo comparabile nei weekend corti.",
+    "delirio_text": "Nel 2023 ha conquistato il titolo mondiale matematico durante la Sprint Race del Qatar, diventando il primo pilota della storia a vincere il mondiale di sabato dal 1983 (Nelson Piquet a Kyalami).",
+    "year": 2025,
+    "circuit_id": "all",
+    "absurd": 0.75,
+    "state": "attuale",
+    "keywords": ["verstappen", "sprint", "red bull", "sabato", "record"],
+    "subject": "driver:max_verstappen"
+  },
+  {
+    "id": "pill_cur_verstappen_3",
+    "driver_id": "max_verstappen",
+    "driver_name": "Max Verstappen",
+    "team": "red_bull",
+    "category": "circuit_peculiarities",
+    "badge": "SPECIALISTA ANTIORARIO",
+    "title": "Verstappen: Dominio nei tracciati in senso antiorario",
+    "subtext": "Oltre il 45% delle vittorie in carriera di Verstappen è arrivato su circuiti percorsi in senso antiorario (Interlagos, COTA, Baku, Yas Marina, Jeddah, Imola). Una statistica record rispetto alla media storica dei campioni del mondo.",
+    "delirio_text": "I tracciati antiorari sottopongono i muscoli del collo a forze G insolite verso sinistra: Verstappen detiene il tasso di podi più alto dell'era ibrida su piste antiorarie (84%).",
     "year": 2026,
+    "circuit_id": "interlagos",
+    "absurd": 0.88,
+    "state": "attuale",
+    "keywords": ["verstappen", "antiorario", "interlagos", "cota", "baku", "forze g"],
+    "subject": "driver:max_verstappen"
+  },
+
+  # --------------------------------------------------------------------------
+  # CHARLES LECLERC
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_leclerc_1",
+    "driver_id": "charles_leclerc",
+    "driver_name": "Charles Leclerc",
+    "team": "ferrari",
+    "category": "street_mastery",
+    "badge": "RE DEI CITTADINI",
+    "title": "Leclerc: Oltre il 60% delle Pole Position sui Cittadini",
+    "subtext": "Su 26 pole position conquistate in Formula 1 con la Ferrari, ben 16 sono state siglate su circuiti cittadini o semi-permanenti (Monaco, Baku, Singapore, Melbourne, Las Vegas). È la percentuale più alta nella storia della Scuderia.",
+    "delirio_text": "Baku è il feudo di Charles: è l'unico pilota nella storia della F1 ad aver conquistato 4 pole position consecutive sul velocissimo e pericoloso circuito cittadino dell'Azerbaigian.",
+    "year": 2024,
+    "circuit_id": "baku",
+    "absurd": 0.86,
+    "state": "attuale",
+    "keywords": ["leclerc", "pole position", "cittadini", "baku", "monaco", "ferrari"],
+    "subject": "driver:charles_leclerc"
+  },
+  {
+    "id": "pill_cur_leclerc_2",
+    "driver_id": "charles_leclerc",
+    "driver_name": "Charles Leclerc",
+    "team": "ferrari",
+    "category": "active_records",
+    "badge": "IMPRESA MONZA 2024",
+    "title": "Leclerc a Monza: Il trionfo a 1 sola sosta contro le McLaren",
+    "subtext": "Nel GP d'Italia 2024, Charles Leclerc ha percorso 38 giri consecutivi con gomme Hard usurate senza commettere un singolo errore, vincendo a Monza con una sola sosta contro le due delle McLaren di Piastri e Norris.",
+    "delirio_text": "È il secondo pilota Ferrari della storia moderna (dopo Michael Schumacher nel 1998 e 2006) a vincere a Monza e Monte Carlo nello stesso anno solare.",
+    "year": 2024,
     "circuit_id": "monza",
+    "absurd": 0.70,
+    "state": "attuale",
+    "keywords": ["leclerc", "monza", "ferrari", "piastri", "gomme hard", "mclaren"],
+    "subject": "driver:charles_leclerc"
+  },
+  {
+    "id": "pill_cur_leclerc_3",
+    "driver_id": "charles_leclerc",
+    "driver_name": "Charles Leclerc",
+    "team": "ferrari",
+    "category": "trivia_contemporanei",
+    "badge": "TABÙ SFATATO A CASA",
+    "title": "Monaco: Primo monegasco a vincere nel Principato dal 1931",
+    "subtext": "Vincendo il Gran Premio di Monaco 2024 partendo dalla pole, Leclerc è diventato il primo pilota monegasco a vincere il GP di casa nell'era del Campionato Mondiale FIA, succedendo a Louis Chiron che vinse nel 1931.",
+    "delirio_text": "Prima di quel trionfo, Leclerc aveva collezionato a Monaco: 2 ritiri da leader, 1 DNS per rottura del semiasse nel giro di schieramento e una penalità al muretto box.",
+    "year": 2024,
+    "circuit_id": "monaco",
+    "absurd": 0.90,
+    "state": "attuale",
+    "keywords": ["leclerc", "monaco", "chiron", "maledizione", "monte carlo"],
+    "subject": "driver:charles_leclerc"
+  },
+
+  # --------------------------------------------------------------------------
+  # LANDO NORRIS
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_norris_1",
+    "driver_id": "lando_norris",
+    "driver_name": "Lando Norris",
+    "team": "mclaren",
+    "category": "active_records",
+    "badge": "LA RINASCITA MCLAREN",
+    "title": "Norris: 15 Podi prima della prima vittoria (Record Storico)",
+    "subtext": "Lando Norris ha conquistato 15 piazzamenti a podio prima di salire sul gradino più alto a Miami 2024, eguagliando Patrick Depailler, Jean Alesi e Mika Häkkinen per il maggior numero di podi prima del primo trionfo.",
+    "delirio_text": "Dalla vittoria di Miami in poi, il suo tasso di podi è salito a oltre il 70% in stagione, guidando la McLaren verso il primo titolo Costruttori del XXI secolo.",
+    "year": 2024,
+    "circuit_id": "miami",
+    "absurd": 0.84,
+    "state": "attuale",
+    "keywords": ["norris", "mclaren", "podi", "miami", "prima vittoria"],
+    "subject": "driver:lando_norris"
+  },
+  {
+    "id": "pill_cur_norris_2",
+    "driver_id": "lando_norris",
+    "driver_name": "Lando Norris",
+    "team": "mclaren",
+    "category": "qualifying_stats",
+    "badge": "EFFICIENZA AL VIA",
+    "title": "Norris e la difesa della Pole al 1° Giro",
+    "subtext": "Dopo una serie di 6 pole position in cui aveva perso la testa della corsa alla prima curva, Norris ha sfatato il tabù al GP di Singapore 2024, dominando la corsa dall'inizio alla fine con oltre 20 secondi di vantaggio.",
+    "delirio_text": "Singapore 2024 è stato il primo 'Grand Chelem sfiorato' di Norris, avendo condotto tutti i 62 giri della gara notturna tra i muretti di Marina Bay.",
+    "year": 2024,
+    "circuit_id": "marina_bay",
+    "absurd": 0.78,
+    "state": "attuale",
+    "keywords": ["norris", "pole", "singapore", "primo giro", "mclaren"],
+    "subject": "driver:lando_norris"
+  },
+
+  # --------------------------------------------------------------------------
+  # OSCAR PIASTRI
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_piastri_1",
+    "driver_id": "oscar_piastri",
+    "driver_name": "Oscar Piastri",
+    "team": "mclaren",
+    "category": "next_gen",
+    "badge": "PRIMO PILOTA ANNI 2000",
+    "title": "Piastri: Il primo nato nel XXI secolo a vincere in F1",
+    "subtext": "Nato il 6 aprile 2001 a Melbourne, Oscar Piastri è il primo essere umano nato negli anni 2000 a vincere un Gran Premio di Formula 1 (Ungheria 2024), abbattendo una barriera generazionale storica.",
+    "delirio_text": "Prima di vincere un Gran Premio della domenica, Piastri aveva già vinto una gara Sprint (Qatar 2023), impresa riuscita solo a lui tra tutti i debuttanti dell'era moderna.",
+    "year": 2024,
+    "circuit_id": "hungaroring",
+    "absurd": 0.92,
+    "state": "attuale",
+    "keywords": ["piastri", "anni 2000", "hungaroring", "mclaren", "debutto"],
+    "subject": "driver:oscar_piastri"
+  },
+  {
+    "id": "pill_cur_piastri_2",
+    "driver_id": "oscar_piastri",
+    "driver_name": "Oscar Piastri",
+    "team": "mclaren",
+    "category": "heroic_drives",
+    "badge": "DIFESA PERFETTA A BAKU",
+    "title": "Piastri a Baku: 33 giri con Leclerc a meno di 1 secondo",
+    "subtext": "Nel GP d'Azerbaigian 2024, dopo uno spettacolare sorpasso a curva 1 su Leclerc, Piastri ha difeso la testa della gara per oltre 30 giri senza DRS, resistendo a velocità oltre 340 km/h senza un solo bloccaggio ruota.",
+    "delirio_text": "A fine gara, i tecnici McLaren hanno calcolato che Piastri ha trascorso l'87% del secondo stint con la Ferrari di Leclerc a una distanza compresa tra 0.4 e 0.9 secondi.",
+    "year": 2024,
+    "circuit_id": "baku",
+    "absurd": 0.81,
+    "state": "attuale",
+    "keywords": ["piastri", "baku", "leclerc", "mclaren", "difesa", "drs"],
+    "subject": "driver:oscar_piastri"
+  },
+
+  # --------------------------------------------------------------------------
+  # LEWIS HAMILTON
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_hamilton_1",
+    "driver_id": "lewis_hamilton",
+    "driver_name": "Lewis Hamilton",
+    "team": "ferrari",
+    "category": "legendary_milestones",
+    "badge": "IL PASSAGGIO A MARANELLO",
+    "title": "Hamilton in Ferrari: Primo britannico dai tempi di Eddie Irvine",
+    "subtext": "Con il passaggio alla Scuderia Ferrari, Lewis Hamilton diventa il primo pilota del Regno Unito a guidare per il Cavallino Rampante da Eddie Irvine nel 1999 e Nigel Mansell nel 1990.",
+    "delirio_text": "Hamilton insegue l'ottavo titolo mondiale: se dovesse trionfare in rosso, diventerebbe l'unico pilota della storia a vincere il titolo mondiale con tre scuderie diverse con motore proprio (McLaren, Mercedes, Ferrari).",
+    "year": 2025,
+    "circuit_id": "monza",
+    "absurd": 0.85,
+    "state": "attuale",
+    "keywords": ["hamilton", "ferrari", "maranello", "irvine", "mansell", "titolo"],
+    "subject": "driver:lewis_hamilton"
+  },
+  {
+    "id": "pill_cur_hamilton_2",
+    "driver_id": "lewis_hamilton",
+    "driver_name": "Lewis Hamilton",
+    "team": "mercedes",
+    "category": "active_records",
+    "badge": "RE ASSOLUTO DI SILVERSTONE",
+    "title": "Hamilton: 9 Vittorie sullo stesso identico circuito",
+    "subtext": "Trionfando nel GP di Gran Bretagna 2024 a Silverstone sotto la pioggia, Lewis Hamilton ha stabilito il record imbattuto per il maggior numero di vittorie conquistate da un pilota sullo stesso circuito (9 successi, superando le 8 di Michael Schumacher a Magny-Cours).",
+    "delirio_text": "Il successo è arrivato dopo 945 giorni di digiuno dalla sua precedente vittoria (Arabia Saudita 2021), segnando il ritorno sul gradino più alto all'età di 39 anni.",
+    "year": 2024,
+    "circuit_id": "silverstone",
+    "absurd": 0.77,
+    "state": "attuale",
+    "keywords": ["hamilton", "silverstone", "record 9 vittorie", "schumacher", "pioggia"],
+    "subject": "driver:lewis_hamilton"
+  },
+
+  # --------------------------------------------------------------------------
+  # GEORGE RUSSELL
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_russell_1",
+    "driver_id": "george_russell",
+    "driver_name": "George Russell",
+    "team": "mercedes",
+    "category": "curiosita_geografiche",
+    "badge": "IL RECORD NO-EURO",
+    "title": "Russell: Vittorie solo in paesi che non adottano l'Euro",
+    "subtext": "Tutte le vittorie in carriera di George Russell con la Mercedes sono state conseguite in nazioni con valuta estera fuori dall'Eurozona: Brasile (Real), Austria (pur essendo Euro, trionfo ereditato dopo il contatto Norris-Verstappen) e Las Vegas (Dollaro USA).",
+    "delirio_text": "Nel GP di Las Vegas 2024 ha dominato partendo dalla pole a 12°C di asfalto notturno, con oltre 7 secondi di margine sulle Ferrari.",
+    "year": 2024,
+    "circuit_id": "las_vegas",
+    "absurd": 0.89,
+    "state": "attuale",
+    "keywords": ["russell", "mercedes", "euro", "valuta", "las vegas", "interlagos"],
+    "subject": "driver:george_russell"
+  },
+  {
+    "id": "pill_cur_russell_2",
+    "driver_id": "george_russell",
+    "driver_name": "George Russell",
+    "team": "mercedes",
+    "category": "bizarre_moments",
+    "badge": "LA BEFFA DI SPA 2024",
+    "title": "Russell e la vittoria svanita alla bilancia a Spa",
+    "subtext": "Nel GP del Belgio 2024 a Spa-Francorchamps, Russell vince compiendo un capolavoro a una sola sosta (34 giri sulle Hard). Dopo la festa sul podio, la monoposto risulta sotto peso di 1.5 kg per via del consumo imprevisto degli pneumatici, venendo squalificato.",
+    "delirio_text": "Non accadeva dal 1994 a Spa che il vincitore sul traguardo venisse squalificato nelle verifiche tecniche post-gara (Michael Schumacher con il fondo in legno usurato).",
+    "year": 2024,
+    "circuit_id": "spa",
+    "absurd": 0.94,
+    "state": "attuale",
+    "keywords": ["russell", "spa", "squalifica", "peso", "gomme hard", "mercedes"],
+    "subject": "driver:george_russell"
+  },
+
+  # --------------------------------------------------------------------------
+  # CARLOS SAINZ
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_sainz_1",
+    "driver_id": "carlos_sainz",
+    "driver_name": "Carlos Sainz",
+    "team": "williams",
+    "category": "heroic_drives",
+    "badge": "L'INTERRUTTORE DI MONOPOLI",
+    "title": "Sainz: L'unico non-Red Bull a vincere nel 2023",
+    "subtext": "Nel campionato 2023, dominato in modo schiacciante dalla Red Bull su 21 delle 22 gare in programma, Carlos Sainz con la Ferrari è stato l'unico pilota di tutta la griglia a spezzare l'egemonia trionfando magistralmente a Singapore.",
+    "delirio_text": "A Singapore 2023 inventò la celebre tattica del 'DRS guidato', rallentando appositamente per dare l'ala a Norris ed evitare che Russell con gomme fresche li superasse entrambi.",
+    "year": 2023,
+    "circuit_id": "marina_bay",
+    "absurd": 0.80,
+    "state": "attuale",
+    "keywords": ["sainz", "singapore", "ferrari", "drs", "red bull", "norris"],
+    "subject": "driver:carlos_sainz"
+  },
+  {
+    "id": "pill_cur_sainz_2",
+    "driver_id": "carlos_sainz",
+    "driver_name": "Carlos Sainz",
+    "team": "williams",
+    "category": "heroic_drives",
+    "badge": "TRIONFO POST-OPERATORIO",
+    "title": "Sainz: Vittoria a Melbourne a 14 giorni dall'appendicite",
+    "subtext": "Costretto a saltare il GP d'Arabia Saudita per un intervento d'urgenza di appendicectomia, Sainz è tornato in pista due settimane dopo all'Albert Park di Melbourne, qualificandosi in prima fila e vincendo il GP d'Australia 2024.",
+    "delirio_text": "Il suo recupero lampo ha ricordato l'impresa di Niki Lauda al GP d'Italia 1976 a Monza, quando tornò nell'abitacolo dopo sole 6 settimane dal rogo del Nürburgring.",
+    "year": 2024,
+    "circuit_id": "albert_park",
+    "absurd": 0.87,
+    "state": "attuale",
+    "keywords": ["sainz", "australia", "appendicite", "melbourne", "recupero", "ferrari"],
+    "subject": "driver:carlos_sainz"
+  },
+
+  # --------------------------------------------------------------------------
+  # FERNANDO ALONSO
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_alonso_1",
+    "driver_id": "fernando_alonso",
+    "driver_name": "Fernando Alonso",
+    "team": "aston_martin",
+    "category": "legendary_milestones",
+    "badge": "4 DECENNI DI PUNTI",
+    "title": "Alonso: Punti Mondiali distribuiti su 4 Decenni Diversi",
+    "subtext": "Fernando Alonso è l'unico pilota nella storia della Formula 1 ad aver conquistato punti iridati in quattro decenni differenti: anni 2000 (Renault/McLaren), anni 2010 (Ferrari/McLaren), anni 2020 (Alpine/Aston Martin) e stagione 2026.",
+    "delirio_text": "Con oltre 400 Gran Premi disputati, ha percorso in gara oltre 110.000 km, pari a quasi tre volte l'intera circonferenza della Terra.",
+    "year": 2026,
+    "circuit_id": "all",
     "absurd": 0.95,
-    "state": "tabu_sfatato",
-    "keywords": ["antonelli", "biossido di titanio", "e171", "tabu sfatato", "meme", "correlazione"],
-    "badge": "TABÙ SFATATO (2026)"
-})
+    "state": "attuale",
+    "keywords": ["alonso", "aston martin", "4 decenni", "400 gp", "longevita"],
+    "subject": "driver:fernando_alonso"
+  },
+  {
+    "id": "pill_cur_alonso_2",
+    "driver_id": "fernando_alonso",
+    "driver_name": "Fernando Alonso",
+    "team": "aston_martin",
+    "category": "biometric_trivia",
+    "badge": "L'ULTIMO CAMPIONE MANCINO",
+    "title": "Alonso: L'unico Campione del Mondo Mancino del XXI Secolo",
+    "subtext": "Dalla vittoria del titolo mondiale di Ayrton Senna nel 1991 a oggi, Fernando Alonso (2005 e 2006) è l'unico pilota mancino ad essersi laureato Campione del Mondo di Formula 1 negli ultimi 35 anni.",
+    "delirio_text": "Nonostante rappresentino solo il 10% della popolazione, i piloti mancini documentati (Senna, Alonso, Button, Webber) vantano oltre 120 vittorie mondiali complessive.",
+    "year": 2025,
+    "circuit_id": "all",
+    "absurd": 0.91,
+    "state": "attuale",
+    "keywords": ["alonso", "mancino", "senna", "button", "biometria", "titolo mondiale"],
+    "subject": "driver:fernando_alonso"
+  },
 
-# ------------------------------------------------------------------------------
-# F. ASTROLOGICAL & DELIRIO COMBINATIONS (Segni & Elementi per Top Drivers)
-# ------------------------------------------------------------------------------
-sign_wins = defaultdict(list)
-element_wins = defaultdict(list)
+  # --------------------------------------------------------------------------
+  # KIMI ANTONELLI
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_antonelli_1",
+    "driver_id": "kimi_antonelli",
+    "driver_name": "Kimi Antonelli",
+    "team": "mercedes",
+    "category": "next_gen",
+    "badge": "L'EREDE ITALIANO",
+    "title": "Antonelli: L'Italia torna al volante di un Top Team dopo 16 anni",
+    "subtext": "Con la promozione in Mercedes a soli 18 anni al posto di Hamilton, Kimi Antonelli è il primo pilota italiano a guidare per un top team vincente dai tempi di Giancarlo Fisichella in Ferrari nel 2009.",
+    "delirio_text": "È il pilota più giovane a debuttare con una freccia d'argento Mercedes dai tempi dell'era pre-bellica, saltando direttamente la Formula 3 per le sue doti velocistiche straordinarie sul bagnato.",
+    "year": 2025,
+    "circuit_id": "monza",
+    "absurd": 0.85,
+    "state": "attuale",
+    "keywords": ["antonelli", "mercedes", "italia", "fisichella", "giovane"],
+    "subject": "driver:kimi_antonelli"
+  },
 
-for did, stats in driver_stats.items():
-    driver = drivers_by_id.get(did)
-    if not driver:
-        continue
-    sign = driver.get('zodiac_sign')
-    elem = driver.get('zodiac_element')
-    if sign and elem and stats['wins']:
-        sign_wins[sign].extend(stats['wins'])
-        element_wins[elem].extend(stats['wins'])
+  # --------------------------------------------------------------------------
+  # OLIVER BEARMAN & FRANCO COLAPINTO
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_bearman_1",
+    "driver_id": "oliver_bearman",
+    "driver_name": "Oliver Bearman",
+    "team": "haas",
+    "category": "next_gen",
+    "badge": "RECORD STORICO ASSOLUTO",
+    "title": "Bearman: A punti con 2 team diversi da debuttante",
+    "subtext": "Nel 2024, Oliver Bearman è diventato il primo pilota nella storia della Formula 1 a debuttare e andare a punti nella stessa stagione con due scuderie diverse: 7° posto con la Ferrari in Arabia Saudita e 10° posto con la Haas a Baku.",
+    "delirio_text": "A Jeddah fu chiamato al venerdì mattina per sostituire Sainz operato d'urgenza: senza aver mai provato la Ferrari SF-24 se non al simulatore, ha chiuso davanti a Norris e Hamilton.",
+    "year": 2024,
+    "circuit_id": "jeddah",
+    "absurd": 0.93,
+    "state": "attuale",
+    "keywords": ["bearman", "ferrari", "haas", "punti debutto", "jeddah", "baku"],
+    "subject": "driver:oliver_bearman"
+  },
+  {
+    "id": "pill_cur_colapinto_1",
+    "driver_id": "franco_colapinto",
+    "driver_name": "Franco Colapinto",
+    "team": "williams",
+    "category": "next_gen",
+    "badge": "ARGENTINA A PUNTI DOPO 42 ANNI",
+    "title": "Colapinto: Primo argentino a punti in F1 dal 1982",
+    "subtext": "Con l'8° posto conquistato a Baku 2024 alla sua seconda gara con la Williams, Franco Colapinto ha riportato la bandiera argentina nella zona punti della F1 per la prima volta da Carlos Reutemann nel 1982.",
+    "delirio_text": "In 3 gare dal debutto a Monza, ha conquistato più punti mondiali di quanti ne avesse totalizzati il suo predecessore Logan Sargeant in tutta la stagione e mezza precedente.",
+    "year": 2024,
+    "circuit_id": "baku",
+    "absurd": 0.86,
+    "state": "attuale",
+    "keywords": ["colapinto", "williams", "argentina", "reutemann", "baku", "punti"],
+    "subject": "driver:franco_colapinto"
+  },
 
-for elem, wins_list in element_wins.items():
-    pill_id_counter += 1
-    pills.append({
-        "id": f"pill_{pill_id_counter}",
-        "pattern": "delirio_zodiac_element",
-        "subject": f"element:{elem.lower()}",
-        "title": f"Piloti nati sotto l'Elemento {elem}: {len(wins_list)} trionfi nella storia",
-        "subtext": f"Nella modalità Delirio di F1 Stats Pills: i piloti nati sotto i segni di {elem} hanno collezionato un totale straordinario di {len(wins_list)} vittorie dal 1950 a oggi.",
-        "category": "bizarre_moments",
-        "year": 2024,
-        "circuit_id": "all",
-        "absurd": 0.98,
-        "state": "delirio",
-        "keywords": ["oroscopo", "zodiaco", elem.lower(), "delirio", "astrologia", "coincidenza"],
-        "badge": f"SEGNI DI {elem.upper()}"
-    })
+  # --------------------------------------------------------------------------
+  # NICO HULKENBERG
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_hulkenberg_1",
+    "driver_id": "nico_hulkenberg",
+    "driver_name": "Nico Hülkenberg",
+    "team": "audi",
+    "category": "veterans_resilience",
+    "badge": "COSTANZA ESTREMA",
+    "title": "Hülkenberg: Più di 220 partenze e la nuova era Audi",
+    "subtext": "Nico Hülkenberg detiene il record per il maggior numero di partenze in Formula 1 senza una vittoria (oltre 220 GP disputati), venendo scelto come pilota di riferimento per guidare la transizione di Sauber nel progetto ufficiale Audi.",
+    "delirio_text": "Nonostante l'assenza di vittorie, ha conquistato una pole position storica a Interlagos 2010 sul bagnato con la Williams e una vittoria alla 24 Ore di Le Mans al debutto assoluto con Porsche nel 2015.",
+    "year": 2025,
+    "circuit_id": "interlagos",
+    "absurd": 0.83,
+    "state": "attuale",
+    "keywords": ["hulkenberg", "sauber", "audi", "partenze", "record", "interlagos"],
+    "subject": "driver:nico_hulkenberg"
+  },
 
-# ------------------------------------------------------------------------------
-# G. RIMONTE RECORD DALLA GRIGLIA (Watson 22°, Perez Ultimo, Button 14°, Senna...)
-# ------------------------------------------------------------------------------
-epic_comebacks = [
-    ('watson', '1983', 'Long Beach', 22, 1, 'John Watson stabilisce il record imbattuto nella storia vincendo dal 22° posto in griglia.'),
-    ('perez', '2020', 'Sakhir', 18, 1, 'Sergio Perez finisce ultimo al 1° giro dopo un contatto e rimonta fino alla vittoria per la Racing Point.'),
-    ('button', '2006', 'Ungheria', 14, 1, 'Jenson Button vince la sua prima gara sotto la pioggia dell\'Hungaroring partendo 14°.'),
-    ('panis', '1996', 'Monaco', 14, 1, 'Olivier Panis vince nel diluvio di Monte Carlo partendo 14° con sole 3 vetture al traguardo.')
+  # --------------------------------------------------------------------------
+  # PIERRE GASLY & ESTEBAN OCON
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_alpine_1",
+    "driver_id": "pierre_gasly",
+    "driver_name": "Pierre Gasly & Esteban Ocon",
+    "team": "alpine",
+    "category": "heroic_drives",
+    "badge": "IL MIRACOLO NEL DILUVIO",
+    "title": "Alpine: Doppio Podio sul nubifragio di San Paolo 2024",
+    "subtext": "Sotto un nubifragio torrenziale a Interlagos 2024, Esteban Ocon (2°) e Pierre Gasly (3°) hanno portato entrambe le Alpine sul podio, la prima volta che due piloti francesi salgono insieme sul podio con una scuderia francese da Ligier nel 1997.",
+    "delirio_text": "In una sola gara sul bagnato, la scuderia di Enstone ha conquistato 33 punti mondiali, balzando dalla nona alla sesta posizione nella classifica costruttori e incassando oltre 30 milioni di dollari di premi.",
+    "year": 2024,
+    "circuit_id": "interlagos",
+    "absurd": 0.89,
+    "state": "attuale",
+    "keywords": ["gasly", "ocon", "alpine", "interlagos", "pioggia", "doppio podio"],
+    "subject": "driver:pierre_gasly"
+  },
+
+  # --------------------------------------------------------------------------
+  # ALEXANDER ALBON
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_albon_1",
+    "driver_id": "alexander_albon",
+    "driver_name": "Alexander Albon",
+    "team": "williams",
+    "category": "active_records",
+    "badge": "IL MURO DI MONZA",
+    "title": "Albon: Il maestro della velocità di punta sui rettilinei",
+    "subtext": "Albon ha registrato le velocità di punta più elevate della griglia a Monza e Montreal (oltre 352 km/h con DRS chiuso), riuscendo a difendere la zona punti per oltre 45 giri consecutivi senza farsi superare da vetture con gomma più fresca.",
+    "delirio_text": "È l'unico pilota di nazionalità thailandese della storia contemporanea della F1, e il secondo di sempre dopo il leggendario Principe Bira negli anni '50.",
+    "year": 2024,
+    "circuit_id": "monza",
+    "absurd": 0.74,
+    "state": "attuale",
+    "keywords": ["albon", "williams", "monza", "top speed", "principe bira"],
+    "subject": "driver:alexander_albon"
+  },
+
+  # --------------------------------------------------------------------------
+  # YUKI TSUNODA & LIAM LAWSON
+  # --------------------------------------------------------------------------
+  {
+    "id": "pill_cur_tsunoda_1",
+    "driver_id": "yuki_tsunoda",
+    "driver_name": "Yuki Tsunoda",
+    "team": "rb",
+    "category": "biometric_trivia",
+    "badge": "IL PILOTA PIÙ COMPATTO",
+    "title": "Tsunoda: 159 cm di altezza e il record giapponese",
+    "subtext": "Con i suoi 159 cm di statura, Yuki Tsunoda è il pilota più compatto dell'intera griglia contemporanea e tra i più bassi dell'intera storia della Formula 1 (27 cm più basso di Albon, Russell e Ocon, tutti alti 186 cm).",
+    "delirio_text": "Tsunoda è diventato il pilota giapponese con il maggior numero di Gran Premi conclusi a punti nella storia moderna della Formula 1, superando Kamui Kobayashi e Takuma Sato.",
+    "year": 2025,
+    "circuit_id": "suzuka",
+    "absurd": 0.85,
+    "state": "attuale",
+    "keywords": ["tsunoda", "altezza", "159 cm", "suzuka", "giappone", "rb"],
+    "subject": "driver:yuki_tsunoda"
+  }
 ]
 
-for did, yr, gp, grid, fin, desc in epic_comebacks:
-    driver = drivers_by_id.get(did, {'name': did.title()})
-    pill_id_counter += 1
-    pills.append({
-        "id": f"pill_{pill_id_counter}",
-        "pattern": "rimonta_estrema",
-        "subject": f"driver:{did}",
-        "title": f"{driver['name']}: Vittoria partendo dalla {grid}ª casella a {gp}",
-        "subtext": desc,
-        "category": "heroic_drives",
-        "year": int(yr),
-        "circuit_id": gp.lower().replace(' ', '_'),
-        "absurd": 0.80,
-        "state": "storica",
-        "keywords": [driver['name'].lower(), "rimonta", f"{grid} posto", "griglia", did],
-        "badge": f"PARTENZA DA {grid}°"
-    })
+def generate():
+    print(f"Generating {len(MODERN_PILLS)} current F1 pills focused on active drivers...")
+    
+    # Save to data/pills.json
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(MODERN_PILLS, f, ensure_ascii=False, indent=2)
+    
+    # Save to public/data/pills.json
+    with open(PUBLIC_DATA_DIR / "pills.json", "w", encoding="utf-8") as f:
+        json.dump(MODERN_PILLS, f, ensure_ascii=False, indent=2)
 
-# Write outputs
-print(f"Total pills generated: {len(pills)}")
+    print(f"Successfully saved current pills to {OUTPUT_FILE} and {PUBLIC_DATA_DIR / 'pills.json'}")
 
-# Sort pills: highest absurdity and special milestones first
-pills.sort(key=lambda x: (x.get('state') == 'tabu_sfatato', x.get('absurd', 0.5)), reverse=True)
-
-with open(PILLS_DATA_FILE, 'w', encoding='utf-8') as f:
-    json.dump(pills, f, ensure_ascii=False, indent=2)
-
-print(f"Saved {len(pills)} pills to {PILLS_DATA_FILE}")
+if __name__ == "__main__":
+    generate()

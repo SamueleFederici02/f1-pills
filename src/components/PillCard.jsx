@@ -29,23 +29,36 @@ export default function PillCard({
   const isDelirio = pill.state === 'delirio' || (pill.absurd && pill.absurd >= 0.85);
   const absurdityPct = Math.round((pill.absurd || 0.5) * 100);
 
-  // Accent colors based on state
-  let accentBorder = 'border-white/10';
+  // Accent colors based on team and state
+  const teamInfo = TEAM_COLORS[pill.team];
+  let accentBorder = teamInfo ? teamInfo.border : 'border-white/10';
   let accentBg = 'bg-white/5';
   let accentBadge = 'bg-white/10 text-slate-300 border-white/20';
 
-  if (isDebunked) {
-    accentBorder = 'border-emerald-500/50 shadow-emerald-950/20 shadow-lg';
-    accentBg = 'bg-emerald-950/20';
-    accentBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-  } else if (pill.badge?.includes('100%') || pill.badge?.includes('RECORD')) {
+  if (pill.team === 'ferrari') {
+    accentBorder = 'border-red-600/40 shadow-red-950/20 shadow-lg';
+    accentBg = 'bg-red-950/15';
+    accentBadge = 'bg-red-600/20 text-red-300 border-red-500/40';
+  } else if (pill.team === 'mclaren') {
+    accentBorder = 'border-orange-500/40 shadow-orange-950/20 shadow-lg';
+    accentBg = 'bg-orange-950/15';
+    accentBadge = 'bg-orange-500/20 text-orange-300 border-orange-500/40';
+  } else if (pill.team === 'red_bull') {
+    accentBorder = 'border-blue-600/40 shadow-blue-950/20 shadow-lg';
+    accentBg = 'bg-blue-950/15';
+    accentBadge = 'bg-blue-600/20 text-blue-300 border-blue-500/40';
+  } else if (pill.team === 'mercedes') {
+    accentBorder = 'border-teal-500/40 shadow-teal-950/20 shadow-lg';
+    accentBg = 'bg-teal-950/15';
+    accentBadge = 'bg-teal-500/20 text-teal-300 border-teal-500/40';
+  } else if (pill.team === 'aston_martin') {
+    accentBorder = 'border-emerald-600/40';
+    accentBg = 'bg-emerald-950/15';
+    accentBadge = 'bg-emerald-600/20 text-emerald-300 border-emerald-500/40';
+  } else if (pill.badge?.includes('RECORD')) {
     accentBorder = 'border-purple-500/40 shadow-purple-950/20 shadow-lg';
     accentBg = 'bg-purple-950/20';
     accentBadge = 'bg-purple-500/20 text-purple-300 border-purple-500/40';
-  } else if (pill.category === 'finish_anomalies' || pill.category === 'heroic_drives') {
-    accentBorder = 'border-amber-500/40';
-    accentBg = 'bg-amber-950/20';
-    accentBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
   }
 
   const categoryInfo = CATEGORY_LABELS[pill.category] || {
@@ -67,14 +80,16 @@ export default function PillCard({
       <div className="p-5 pb-3">
         <div className="flex items-start justify-between gap-3 mb-2.5">
           <div className="flex flex-wrap items-center gap-1.5">
+            {pill.driver_name && (
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20 font-f1-display">
+                🏎️ {pill.driver_name}
+              </span>
+            )}
             {pill.badge && (
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider border font-f1-display ${accentBadge}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border font-f1-display ${accentBadge}`}>
                 {pill.badge}
               </span>
             )}
-            <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${categoryInfo.color}`}>
-              {categoryInfo.label}
-            </span>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
