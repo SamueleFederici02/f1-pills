@@ -3,9 +3,8 @@ name: Update F1 Stats & Deploy to Firebase
 on:
   push:
     branches: [ master, main ]
-  workflow_dispatch: # Permette di lanciarlo manualmente da GitHub con un click
+  workflow_dispatch:
   schedule:
-    # Esegue un check automatico la domenica sera dopo i GP (es. 16:00, 19:00, 22:00 UTC)
     - cron: '0 16,19,22 * * 0'
 
 jobs:
@@ -38,9 +37,9 @@ jobs:
         run: npm run build
 
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: w9jds/firebase-action@master
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SPORTS_PILLS }}'
-          channelId: live
-          projectId: sports-pills
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          PROJECT_ID: sports-pills
