@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "deploy": "vite build && firebase deploy --only hosting",
     "export-data": "python pipeline/export_web.py",
     "generate-pills": "python pipeline/generate_pills.py"
   },
