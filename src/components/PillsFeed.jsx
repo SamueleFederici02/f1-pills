@@ -24,13 +24,13 @@ export default function PillsFeed({
   const [selectedTiming, setSelectedTiming] = useState('all');
   const [minAbsurdity, setMinAbsurdity] = useState(0);
 
-  // Filters focused on temporal race lifecycle 2026:
+  // Filters focused on real stats and trivia:
   const timingFilters = [
-    { id: 'all', label: 'Tutto il Weekend F1 2026 🏁' },
-    { id: 'in_arrivo', label: '🟡 In Arrivo: Pre-Gara GP Messico (Match Point)' },
-    { id: 'appena_passata', label: '🟢 Appena Conclusa: Austin (Trionfo Antonelli)' },
-    { id: 'championship_fight', label: '🏆 Titolo Mondiale (Antonelli vs Verstappen)' },
-    { id: 'successiva', label: '🇧🇷 Prossima Tappa: Interlagos Sprint' }
+    { id: 'all', label: 'Tutte le Pillole 🏁' },
+    { id: 'records', label: '📊 Record & Statistiche Serie' },
+    { id: 'curiosities', label: '🦄 Curiosità Assurde & Misure Nerd' },
+    { id: 'in_arrivo', label: '🟡 GP Messico (Match Point)' },
+    { id: 'appena_passata', label: '🟢 GP Austin (Concluso)' }
   ];
 
   const filteredPills = useMemo(() => {
@@ -38,12 +38,12 @@ export default function PillsFeed({
       // Absurdity filter
       if ((pill.absurd || 0.5) < minAbsurdity) return false;
 
-      // Timing / Category filter
+      // Category / Timing filter
       if (selectedTiming !== 'all') {
+        if (selectedTiming === 'records' && !['records', 'championship_fight'].includes(pill.category)) return false;
+        if (selectedTiming === 'curiosities' && !['curiosities', 'aerodynamics', 'legal_predicates'].includes(pill.category)) return false;
         if (selectedTiming === 'in_arrivo' && pill.timing_status !== 'in_arrivo') return false;
         if (selectedTiming === 'appena_passata' && pill.timing_status !== 'appena_passata') return false;
-        if (selectedTiming === 'championship_fight' && pill.category !== 'championship_fight') return false;
-        if (selectedTiming === 'successiva' && pill.timing_status !== 'successiva') return false;
       }
 
       // Search query filter
