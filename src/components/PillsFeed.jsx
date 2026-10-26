@@ -9,7 +9,8 @@ import {
   Clock, 
   RotateCcw,
   Sparkles,
-  Zap
+  Zap,
+  Award
 } from 'lucide-react';
 import PillCard from './PillCard';
 
@@ -23,13 +24,13 @@ export default function PillsFeed({
   const [selectedTiming, setSelectedTiming] = useState('all');
   const [minAbsurdity, setMinAbsurdity] = useState(0);
 
-  // Filters focused on temporal race lifecycle:
+  // Filters focused on temporal race lifecycle 2026:
   const timingFilters = [
-    { id: 'all', label: 'Tutto il Weekend di Gara 🏁' },
-    { id: 'in_arrivo', label: '🟡 In Arrivo: Pre-Gara Messico' },
-    { id: 'appena_passata', label: '🟢 Appena Conclusa: Post-Gara Austin' },
-    { id: 'championship_fight', label: '🏆 Lotta Mondiale (Ferrari vs McLaren / Max vs Lando)' },
-    { id: 'successiva', label: '🇧🇷 Prossima: Interlagos Sprint' }
+    { id: 'all', label: 'Tutto il Weekend F1 2026 🏁' },
+    { id: 'in_arrivo', label: '🟡 In Arrivo: Pre-Gara GP Messico (Match Point)' },
+    { id: 'appena_passata', label: '🟢 Appena Conclusa: Austin (Trionfo Antonelli)' },
+    { id: 'championship_fight', label: '🏆 Titolo Mondiale (Antonelli vs Verstappen)' },
+    { id: 'successiva', label: '🇧🇷 Prossima Tappa: Interlagos Sprint' }
   ];
 
   const filteredPills = useMemo(() => {
@@ -75,15 +76,15 @@ export default function PillsFeed({
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
               <span className="text-[10px] font-mono font-bold uppercase text-amber-400 tracking-wider">
-                GARA IN ARRIVO (ROUND 19)
+                GARA IN ARRIVO &bull; ROUND 19
               </span>
             </div>
             <h3 className="font-f1-display font-black text-lg text-white">
-              Gran Premio del Messico
+              GP del Messico &bull; Match Point Antonelli
             </h3>
             <p className="text-xs text-slate-300 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span>Domenica 1 Novembre &bull; Autodromo Hermanos Rodriguez (2.240m s.l.m.)</span>
+              <span>Domenica 1 Nov 2026 &bull; Autodromo Hermanos Rodriguez (2.240m)</span>
             </p>
           </div>
 
@@ -92,14 +93,14 @@ export default function PillsFeed({
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider">
-                GARA APPENA CONCLUSA (ROUND 18)
+                GARA APPENA CONCLUSA &bull; ROUND 18 AUSTIN
               </span>
             </div>
             <h3 className="font-f1-display font-black text-lg text-white">
-              GP Stati Uniti (Austin) &bull; Doppietta Ferrari
+              Vittoria Antonelli (Pole & 1°) &bull; Leclerc 2°, Max 3°
             </h3>
             <p className="text-xs text-slate-300">
-              Leclerc 1°, Sainz 2° &bull; Penalità Norris 5s a Curva 12 per il podio
+              9ª vittoria stagionale per Kimi Antonelli &bull; Ferrari 2ª e 4ª con Leclerc e Hamilton
             </p>
           </div>
         </div>
@@ -114,7 +115,7 @@ export default function PillsFeed({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cerca tra le pillole attuali (es. Messico, Austin, Leclerc, Verstappen, Norris, Curva 12, Ferrari)..."
+            placeholder="Cerca tra le pillole 2026 (es. Antonelli, Leclerc, Verstappen, Messico, Austin, Sainz, Hamilton)..."
             className="w-full bg-[#121620] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors shadow-inner"
           />
           {searchQuery && (
@@ -186,7 +187,7 @@ export default function PillsFeed({
 
       {/* Results Header */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-        <span>Mostrando <strong>{filteredPills.length}</strong> pillole su questa fase del mondiale</span>
+        <span>Mostrando <strong>{filteredPills.length}</strong> pillole su questa fase del mondiale 2026</span>
         {minAbsurdity > 0 && <span>Filtro assurdità attivo (&ge; {Math.round(minAbsurdity * 100)}%)</span>}
       </div>
 
@@ -208,7 +209,7 @@ export default function PillsFeed({
           <Sparkles className="w-10 h-10 text-slate-500 mx-auto" />
           <h4 className="font-f1-display font-bold text-lg text-white">Nessuna pillola trovata</h4>
           <p className="text-slate-400 text-xs max-w-sm mx-auto">
-            Seleziona "Tutto il Weekend di Gara" per vedere tutte le pillole pre e post-gara.
+            Seleziona "Tutto il Weekend F1 2026" per vedere tutte le pillole pre e post-gara.
           </p>
           <button
             onClick={() => {

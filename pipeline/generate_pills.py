@@ -1,9 +1,7 @@
 # pipeline/generate_pills.py
 """
-F1 Stats Pills — Generatore di Pillole Attualissime:
-1. GARA IN ARRIVO (Pre-Gara: GP del Messico e GP del Brasile)
-2. GARA APPENA CONCLUSA (Post-Gara: GP degli Stati Uniti ad Austin)
-3. LOTTA MONDIALE IN CORSO (Piloti & Costruttori: Verstappen, Norris, Leclerc, Ferrari, McLaren)
+F1 Stats Pills — Generatore di Pillole Attuali Ufficiali 2026:
+Basate sui dati reali del dataset (Round 18 Austin concluso, Round 19 Messico in arrivo).
 """
 
 import json
@@ -16,227 +14,188 @@ PUBLIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTPUT_FILE = DATA_DIR / "pills.json"
 
-PILLS_SESSION_DRIVEN = [
+PILLS_2026 = [
   # ==========================================================================
-  # 1. GARA CHE ARRIVERÀ: PRE-GARA GP DEL MESSICO (Autodromo Hermanos Rodriguez)
+  # 1. GARA IN ARRIVO: PRE-GARA GP DEL MESSICO (Round 19 - 1° Novembre 2026)
   # ==========================================================================
   {
-    "id": "pill_mexico_leclerc_1",
+    "id": "pill_2026_mexico_antonelli_title",
+    "driver_id": "kimi_antonelli",
+    "driver_name": "Kimi Antonelli",
+    "team": "mercedes",
+    "timing_status": "in_arrivo",
+    "category": "championship_fight",
+    "badge": "MATCH POINT MONDIALE 2026",
+    "title": "Antonelli Campione del Mondo in Messico? Il record di gioventù di Vettel trema",
+    "subtext": "Con 118 punti di margine su Max Verstappen dopo il trionfo di Austin (334 vs 216 punti), a Kimi Antonelli basta guadagnare altri 4 punti sul rivale all'Autodromo Hermanos Rodriguez per laurearsi Campione del Mondo 2026 con 4 gare di anticipo.",
+    "delirio_text": "Se dovesse chiudere i giochi in Messico a 20 anni e 2 mesi, Antonelli distruggerebbe il record storico di Sebastian Vettel (Campione del Mondo 2010 ad Abu Dhabi a 23 anni e 134 giorni), diventando inoltre il primo pilota italiano a conquistare il Titolo Mondiale dopo 73 anni da Alberto Ascari (1953 con la Ferrari).",
+    "year": 2026,
+    "circuit_id": "rodriguez",
+    "absurd": 0.94,
+    "state": "pre_gara",
+    "keywords": ["antonelli", "mercedes", "messico", "match point", "vettel", "campione del mondo", "ascari 1953"],
+    "subject": "driver:kimi_antonelli"
+  },
+  {
+    "id": "pill_2026_mexico_ferrari_sainz",
     "driver_id": "charles_leclerc",
-    "driver_name": "Charles Leclerc",
+    "driver_name": "Charles Leclerc & Lewis Hamilton",
     "team": "ferrari",
     "timing_status": "in_arrivo",
     "category": "pre_race",
-    "badge": "IN ARRIVO: GP DEL MESSICO",
-    "title": "Se Leclerc vince in Messico: Ferrari spezza un digiuno di 36 anni",
-    "subtext": "La Scuderia Ferrari non vince il Gran Premio del Messico dal 1990 con Alain Prost. Se Charles Leclerc dovesse confermare la forma di Austin e vincere a Città del Messico, conquisterebbe il primo trionfo del Cavallino all'Autodromo Hermanos Rodriguez nel XXI secolo.",
-    "delirio_text": "L'Autodromo Hermanos Rodriguez sorge a 2.240 metri sul livello del mare: è il tracciato più alto dell'intero calendario F1. L'aria è rarefatta del 22%, costringendo le turbine a girare a oltre 100.000 giri/minuto per garantire potenza al motore termico.",
+    "badge": "DIFESA DEL TRIONFO 2024",
+    "title": "Ferrari in Messico: A caccia della riconferma dopo il capolavoro di Sainz",
+    "subtext": "La Ferrari torna a Città del Messico dove vinse partendo dalla pole position con Carlos Sainz (all'epoca pilota del Cavallino prima del passaggio in Williams). Leclerc e Hamilton puntano a centrare due successi consecutivi per Maranello all'Autodromo Hermanos Rodriguez, cosa mai riuscita alla Rossa nella storia.",
+    "delirio_text": "Leclerc conquistò il podio alle spalle di Sainz in quell'edizione: su 6 partecipazioni in Messico, Charles non si è mai qualificato oltre la seconda fila, ma insegue ancora la sua prima vittoria sul tracciato ad alta quota.",
     "year": 2026,
     "circuit_id": "rodriguez",
     "absurd": 0.82,
     "state": "pre_gara",
-    "keywords": ["messico", "leclerc", "ferrari", "prost", "digiuno 1990", "quota 2240m"],
+    "keywords": ["messico", "ferrari", "leclerc", "hamilton", "sainz 2024", "quota 2240m"],
     "subject": "driver:charles_leclerc"
   },
   {
-    "id": "pill_mexico_verstappen_1",
+    "id": "pill_2026_mexico_verstappen_last_stand",
     "driver_id": "max_verstappen",
     "driver_name": "Max Verstappen",
     "team": "red_bull",
     "timing_status": "in_arrivo",
+    "category": "championship_fight",
+    "badge": "ULTIMA SPIAGGIA IRIDATA",
+    "title": "Verstappen in Messico: Serve la 6ª vittoria per tenere aperto il mondiale",
+    "subtext": "Con solo 216 punti contro i 334 di Antonelli, Max Verstappen ha l'obbligo matematico di vincere all'Autodromo Hermanos Rodriguez per evitare che l'italiano festeggi il titolo iridato già domenica. Il pilota olandese è il re indiscusso del GP messicano, avendovi già trionfato 5 volte in carriera.",
+    "delirio_text": "Se Verstappen non dovesse salire sul podio in Messico, il Titolo Piloti 2026 si assegnerebbe matematicamente ad Antonelli a prescindere dal piazzamento di quest'ultimo.",
+    "year": 2026,
+    "circuit_id": "rodriguez",
+    "absurd": 0.88,
+    "state": "pre_gara",
+    "keywords": ["verstappen", "messico", "red bull", "antonelli", "titolo mondiale", "5 vittorie"],
+    "subject": "driver:max_verstappen"
+  },
+  {
+    "id": "pill_2026_mexico_hamilton_memories",
+    "driver_id": "lewis_hamilton",
+    "driver_name": "Lewis Hamilton",
+    "team": "ferrari",
+    "timing_status": "in_arrivo",
     "category": "pre_race",
-    "badge": "IN ARRIVO: FEUDO DI MAX",
-    "title": "Verstappen in Messico: A caccia della sesta vittoria da record",
-    "subtext": "Max Verstappen è già il pilota più vincente nella storia del GP del Messico con 5 vittorie (2017, 2018, 2021, 2022, 2023). Nessun altro pilota della storia della F1 ha mai vinto 6 volte all'Autodromo Hermanos Rodriguez (Jim Clark si è fermato a 3).",
-    "delirio_text": "La distanza tra la linea di partenza e curva 1 in Messico è di ben 890 metri (la più lunga del mondiale dopo Sochi): storicamente, partire in pole in Messico espone al violento effetto scia degli inseguitori, rendendo la seconda o terza piazzola spesso più vantaggiosa.",
+    "badge": "HAMILTON IN ROSSO A CITTÀ DEL MESSICO",
+    "title": "Hamilton: Il circuito dove vinse due mondiali, ora al volante della Ferrari",
+    "subtext": "Lewis Hamilton torna a Città del Messico vestito di rosso dopo il 4° posto di Austin: all'Autodromo Hermanos Rodriguez ha già festeggiato matematicamente due titoli mondiali in passato (2017 e 2018 con Mercedes). Insegue ora il suo primo podio messicano con la Scuderia Ferrari.",
+    "delirio_text": "A 2.240 metri di altitudine, la Ferrari ha dimostrato una gestione del raffreddamento dei freni e della power unit sensibilmente superiore alla concorrenza nelle ultime edizioni.",
     "year": 2026,
     "circuit_id": "rodriguez",
     "absurd": 0.79,
     "state": "pre_gara",
-    "keywords": ["messico", "verstappen", "red bull", "record 6 vittorie", "scia curva 1"],
-    "subject": "driver:max_verstappen"
-  },
-  {
-    "id": "pill_mexico_norris_1",
-    "driver_id": "lando_norris",
-    "driver_name": "Lando Norris",
-    "team": "mclaren",
-    "timing_status": "in_arrivo",
-    "category": "championship_fight",
-    "badge": "LOTTA AL TITOLO",
-    "title": "Norris e il distacco da recuperare: I precedenti storici di rimonta",
-    "subtext": "A 5 gare dal termine del mondiale, Norris deve recuperare una media di oltre 9 punti a weekend su Verstappen per il Titolo Piloti. Solo due piloti nella storia moderna hanno completato una rimonta simile: Kimi Räikkönen nel 2007 (-17 punti a 2 gare dalla fine) e Sebastian Vettel nel 2012.",
-    "delirio_text": "La McLaren non vince il Campionato Mondiale Piloti dal 2008 (Lewis Hamilton a Interlagos) e il Mondiale Costruttori dal 1998 (Häkkinen-Coulthard).",
-    "year": 2026,
-    "circuit_id": "rodriguez",
-    "absurd": 0.85,
-    "state": "pre_gara",
-    "keywords": ["norris", "mclaren", "verstappen", "rimonta mondiale", "raikkonen 2007"],
-    "subject": "driver:lando_norris"
-  },
-  {
-    "id": "pill_mexico_perez_1",
-    "driver_id": "sergio_perez",
-    "driver_name": "Sergio Perez",
-    "team": "red_bull",
-    "timing_status": "in_arrivo",
-    "category": "pre_race",
-    "badge": "IL TABÙ DI CASA",
-    "title": "Perez e il boato del Foro Sol: Il tabù del vincitore messicano",
-    "subtext": "In 76 anni di Formula 1, nessun pilota messicano ha mai vinto il Gran Premio del Messico (il miglior risultato storico resta il podio al 3° posto conquistato proprio da 'Checo' Perez nel 2021 e 2022 davanti al pubblico dello stadio di baseball Foro Sol).",
-    "delirio_text": "Nel 2023, Perez tentò un sorpasso all'esterno a curva 1 al via contro Leclerc e Verstappen, finendo decollato contro la Ferrari e ritirandosi dopo appena 180 metri di gara davanti ai 140.000 tifosi di casa.",
-    "year": 2026,
-    "circuit_id": "rodriguez",
-    "absurd": 0.91,
-    "state": "pre_gara",
-    "keywords": ["perez", "messico", "foro sol", "tabu di casa", "red bull"],
-    "subject": "driver:sergio_perez"
-  },
-  {
-    "id": "pill_mexico_hamilton_1",
-    "driver_id": "lewis_hamilton",
-    "driver_name": "Lewis Hamilton",
-    "team": "mercedes",
-    "timing_status": "in_arrivo",
-    "category": "pre_race",
-    "badge": "RICORDI IRIDATI IN MESSICO",
-    "title": "Hamilton: L'unico ad aver festeggiato due Mondiali a Città del Messico",
-    "subtext": "Lewis Hamilton ha festeggiato matematicamente la vittoria di due campionati del mondo proprio sul traguardo dell'Autodromo Hermanos Rodriguez (nel 2017 e nel 2018), traguardo mai raggiunto da nessun altro pilota nella storia del GP messicano.",
-    "delirio_text": "Nel 2017 vinse il titolo chiudendo 9° dopo un contatto alla partenza con Vettel e una foratura, festeggiando a 2.240 metri di quota avvolto nella bandiera del Regno Unito.",
-    "year": 2026,
-    "circuit_id": "rodriguez",
-    "absurd": 0.77,
-    "state": "pre_gara",
-    "keywords": ["hamilton", "messico", "mondiale 2017", "mondiale 2018", "titolo"],
+    "keywords": ["hamilton", "ferrari", "messico", "mondiale 2017", "mondiale 2018", "maranello"],
     "subject": "driver:lewis_hamilton"
   },
 
   # ==========================================================================
-  # 2. GARA APPENA PASSATA: POST-GARA GP DEGLI STATI UNITI (Austin - COTA)
+  # 2. GARA APPENA CONCLUSA: POST-GARA GP STATI UNITI (Austin - Round 18)
   # ==========================================================================
   {
-    "id": "pill_austin_ferrari_1",
+    "id": "pill_2026_austin_antonelli_win",
+    "driver_id": "kimi_antonelli",
+    "driver_name": "Kimi Antonelli",
+    "team": "mercedes",
+    "timing_status": "appena_passata",
+    "category": "post_race",
+    "badge": "APPENA CONCLUSA: VITTORIA AD AUSTIN",
+    "title": "Antonelli trionfa ad Austin: 9ª vittoria stagionale partendo dalla Pole",
+    "subtext": "Nel GP degli Stati Uniti corso ieri al COTA di Austin, Kimi Antonelli ha dominato la corsa partendo dalla Pole Position, resistendo alla rimonta di Charles Leclerc (2°) e Max Verstappen (3°). È la sua 9ª vittoria in 18 gare nel mondiale 2026.",
+    "delirio_text": "Nessun debuttante o pilota under-21 nella storia della F1 aveva mai collezionato 9 vittorie e 334 punti nelle prime 18 gare stagionali: ha superato persino il record di Lewis Hamilton del 2007.",
+    "year": 2026,
+    "circuit_id": "americas",
+    "absurd": 0.92,
+    "state": "post_gara",
+    "keywords": ["antonelli", "austin", "pole position", "vittoria", "mercedes", "leclerc", "verstappen"],
+    "subject": "driver:kimi_antonelli"
+  },
+  {
+    "id": "pill_2026_austin_ferrari_podium",
     "driver_id": "charles_leclerc",
-    "driver_name": "Charles Leclerc & Carlos Sainz",
+    "driver_name": "Charles Leclerc & Lewis Hamilton",
     "team": "ferrari",
     "timing_status": "appena_passata",
     "category": "post_race",
-    "badge": "APPENA CONCLUSA: GP USA (AUSTIN)",
-    "title": "Doppietta Ferrari negli USA: Non accadeva da 18 anni (Indianapolis 2006)",
-    "subtext": "La clamorosa doppietta 1-2 di Charles Leclerc e Carlos Sainz al Circuit of the Americas di Austin ha riportato la Scuderia Ferrari a vincere e dominare con entrambe le auto sul suolo statunitense per la prima volta dal GP degli Stati Uniti 2006 a Indianapolis (Michael Schumacher e Felipe Massa).",
-    "delirio_text": "Leclerc ha preso il comando alla prima staccata in salita di curva 1, approfittando del duello ruota a ruota tra Norris e Verstappen, e ha condotto 54 dei 56 giri in totale solitudine.",
-    "year": 2026,
-    "circuit_id": "americas",
-    "absurd": 0.88,
-    "state": "post_gara",
-    "keywords": ["austin", "ferrari", "doppietta", "leclerc", "sainz", "indianapolis 2006"],
-    "subject": "driver:charles_leclerc"
-  },
-  {
-    "id": "pill_austin_penalty_1",
-    "driver_id": "max_verstappen",
-    "driver_name": "Verstappen vs Norris",
-    "team": "red_bull",
-    "timing_status": "appena_passata",
-    "category": "post_race",
-    "badge": "CONTROVERSIA STEWARDS",
-    "title": "Il duello di Curva 12 ad Austin: 5 secondi che decidono il podio",
-    "subtext": "Nel finale del GP degli Stati Uniti ad Austin, la difesa al limite di Max Verstappen su Lando Norris a curva 12 (con entrambe le vetture oltre la linea bianca della via di fuga) ha portato alla penalità di 5 secondi inflitta a Norris per 'sorpasso fuori pista con vantaggio duraturo', ribaltando il podio sul traguardo.",
-    "delirio_text": "La telemetria ha mostrato che Verstappen è arrivato al punto di corda con 1 km/h in più ma senza riuscire a rimanere all'interno della pista, innescando una furiosa polemica tra i team principal sui criteri delle 'Driving Standards Guidelines' della FIA.",
-    "year": 2026,
-    "circuit_id": "americas",
-    "absurd": 0.86,
-    "state": "post_gara",
-    "keywords": ["austin", "curva 12", "norris", "verstappen", "penalita 5 secondi", "fia"],
-    "subject": "driver:max_verstappen"
-  },
-  {
-    "id": "pill_austin_colapinto_lawson_1",
-    "driver_id": "franco_colapinto",
-    "driver_name": "Franco Colapinto & Liam Lawson",
-    "team": "williams",
-    "timing_status": "appena_passata",
-    "category": "post_race",
-    "badge": "RIMONTE DAL FONDO AD AUSTIN",
-    "title": "Colapinto e Lawson: Da fondo griglia a punti in Texas",
-    "subtext": "Entrambi i giovani piloti hanno regalato spettacolo al COTA di Austin partendo dal fondo (Lawson dalla 19ª piazzola per penalità motore, Colapinto dalla 15ª) ed entrando entrambi in top 10 con una strategia alternativa su gomme dure da oltre 40 giri.",
-    "delirio_text": "Colapinto ha conquistato punti in 2 delle sue prime 4 partenze in F1 con la Williams, mentre Lawson ha eguagliato al ritorno il miglior piazzamento stagionale di Ricciardo per Racing Bulls.",
+    "badge": "FERRARI 2ª E 4ª AD AUSTIN",
+    "title": "Leclerc rimonta dal 4° al 2° posto ad Austin: Ferrari a 413 punti",
+    "subtext": "Con una strategia impeccabile su gomma Hard, Charles Leclerc è risalito dalla 4ª casella della griglia fino al 2° gradino del podio al COTA, precedendo la Red Bull di Verstappen e il compagno di squadra Lewis Hamilton (4°), incassando 30 punti per la Scuderia.",
+    "delirio_text": "È il 12° podio stagionale per la Ferrari nel 2026, consolidando la seconda piazza nel Campionato Costruttori (413 punti) alle spalle della sola Mercedes (542 punti).",
     "year": 2026,
     "circuit_id": "americas",
     "absurd": 0.81,
     "state": "post_gara",
-    "keywords": ["austin", "colapinto", "lawson", "williams", "rb", "rimonta"],
-    "subject": "driver:franco_colapinto"
+    "keywords": ["ferrari", "leclerc", "hamilton", "austin", "podio", "costruttori 2026"],
+    "subject": "driver:charles_leclerc"
   },
   {
-    "id": "pill_austin_russell_1",
-    "driver_id": "george_russell",
-    "driver_name": "George Russell",
-    "team": "mercedes",
-    "timing_status": "appena_passata",
-    "category": "post_race",
-    "badge": "DALLA PIT LANE AL 6° POSTO",
-    "title": "Russell ad Austin: Rimonta capolavoro dopo il crash delle qualifiche",
-    "subtext": "Dopo il violento impatto a muro all'ultima curva delle qualifiche che ha costretto i meccanici Mercedes a sostituire il telaio nella notte, George Russell è partito dalla corsia box ed è risalito fino alla 6ª posizione finale sul traguardo del Texas.",
-    "delirio_text": "Ha scontato persino una penalità di 5 secondi per aver superato Bottas fuori dai limiti della pista, compensando con un ritmo su gomma media finale tra i più veloci della gara.",
-    "year": 2026,
-    "circuit_id": "americas",
-    "absurd": 0.76,
-    "state": "post_gara",
-    "keywords": ["russell", "austin", "pit lane", "rimonta", "mercedes"],
-    "subject": "driver:george_russell"
-  },
-
-  # ==========================================================================
-  # 3. GARA SUCCESSIVA IN PROGRAMMA: PREVIEW GP DEL BRASILE (Interlagos)
-  # ==========================================================================
-  {
-    "id": "pill_brazil_preview_1",
+    "id": "pill_2026_austin_verstappen_defense",
     "driver_id": "max_verstappen",
     "driver_name": "Max Verstappen",
     "team": "red_bull",
-    "timing_status": "successiva",
-    "category": "pre_race",
-    "badge": "IN ARRIVO: SPRINT WEEKEND INTERLAGOS",
-    "title": "Brasile in arrivo: Il format Sprint e la pioggia di San Paolo",
-    "subtext": "Dopo il Messico, il Circus volerà subito a San Paolo per il GP del Brasile a Interlagos: penultimo weekend Sprint della stagione, con 34 punti totali in palio per un singolo pilota tra gara breve e Gran Premio domenicale.",
-    "delirio_text": "Interlagos è il circuito con la più alta probabilità statistica di pioggia e Safety Car dell'intero mondiale (oltre il 60% delle edizioni corse con pista bagnata o interruzioni).",
+    "timing_status": "appena_passata",
+    "category": "post_race",
+    "badge": "PODIO AD AUSTIN",
+    "title": "Verstappen 3° ad Austin: Raggiunti 216 punti nel mondiale",
+    "subtext": "Scattato dalla prima fila accanto ad Antonelli, Max Verstappen ha dovuto cedere il passo a Leclerc nella girandola dei pit stop, difendendo con i denti il 3° posto dagli attacchi di Hamilton nel finale di gara al COTA.",
+    "delirio_text": "Nonostante la Red Bull non sia più la vettura dominante del campionato, Verstappen mantiene il 2° posto nella classifica piloti con 216 punti, respingendo l'assalto di Hamilton (214) e Russell (208).",
     "year": 2026,
-    "circuit_id": "interlagos",
-    "absurd": 0.83,
-    "state": "pre_gara",
-    "keywords": ["brasile", "interlagos", "sprint weekend", "pioggia", "san paolo"],
+    "circuit_id": "americas",
+    "absurd": 0.78,
+    "state": "post_gara",
+    "keywords": ["verstappen", "red bull", "austin", "podio", "hamilton", "leclerc"],
     "subject": "driver:max_verstappen"
   },
   {
-    "id": "pill_brazil_ferrari_costruttori_1",
-    "driver_id": "charles_leclerc",
-    "driver_name": "Ferrari vs McLaren",
-    "team": "ferrari",
-    "timing_status": "successiva",
-    "category": "championship_fight",
-    "badge": "CLASSIFICA COSTRUTTORI",
-    "title": "Mondiale Costruttori: Ferrari a sole 8 lunghezze da McLaren",
-    "subtext": "Grazie al bottino record di 55 punti raccolto tra Sprint e Gara ad Austin, la Ferrari si è portata a sole 8 lunghezze dalla capolista McLaren. È il distacco più ridotto tra i primi due costruttori a questo punto della stagione dal mondiale 2008.",
-    "delirio_text": "Con 5 Gran Premi e 2 Sprint ancora da disputare (Messico, Brasile, Las Vegas, Qatar, Abu Dhabi), restano in palio oltre 250 punti costruttori complessivi.",
+    "id": "pill_2026_austin_norris_mclaren",
+    "driver_id": "lando_norris",
+    "driver_name": "Lando Norris",
+    "team": "mclaren",
+    "timing_status": "appena_passata",
+    "category": "post_race",
+    "badge": "RIMONTA MCLAREN AD AUSTIN",
+    "title": "Norris risale dall'8° al 5° posto: McLaren a quota 301 punti",
+    "subtext": "Partito dall'8ª casella dopo una qualifica complicata, Lando Norris ha rimontato fino al 5° posto finale ad Austin precedendo Hadjar e Piastri (7°), portando la McLaren a 301 punti nel Mondiale Costruttori 2026.",
+    "delirio_text": "Norris ha fatto registrare il giro più veloce nel terzo settore del COTA durante gli ultimi 5 passaggi, capitalizzando sul degrado gomma delle vetture rivali.",
     "year": 2026,
-    "circuit_id": "all",
-    "absurd": 0.87,
-    "state": "attuale",
-    "keywords": ["costruttori", "ferrari", "mclaren", "austin", "messico", "brasile"],
-    "subject": "driver:charles_leclerc"
+    "circuit_id": "americas",
+    "absurd": 0.74,
+    "state": "post_gara",
+    "keywords": ["norris", "mclaren", "austin", "piastri", "rimonta"],
+    "subject": "driver:lando_norris"
+  },
+
+  # ==========================================================================
+  # 3. GARA SUCCESSIVA: PREVIEW GP DEL BRASILE (Interlagos Sprint - Round 20)
+  # ==========================================================================
+  {
+    "id": "pill_2026_brazil_preview_sprint",
+    "driver_id": "kimi_antonelli",
+    "driver_name": "Antonelli, Verstappen & Leclerc",
+    "team": "mercedes",
+    "timing_status": "successiva",
+    "category": "pre_race",
+    "badge": "DOPO IL MESSICO: INTERLAGOS SPRINT",
+    "title": "Brasile in arrivo: Il format Sprint a San Paolo e il meteo imprevedibile",
+    "subtext": "Subito dopo il Messico, il calendario 2026 prevede il GP del Brasile a San Paolo (8 Novembre): weekend con gara Sprint al sabato (8 punti al vincitore) e 25 la domenica. Potrebbe essere la festa mondiale di Antonelli o il teatro dello scontro decisivo tra Mercedes e Ferrari per il titolo costruttori.",
+    "delirio_text": "Il tracciato di Interlagos si percorre in senso antiorario: nel 2026, i piloti Mercedes hanno vinto 3 delle 4 gare finora disputate su circuiti antiorari.",
+    "year": 2026,
+    "circuit_id": "interlagos",
+    "absurd": 0.85,
+    "state": "pre_gara",
+    "keywords": ["brasile", "interlagos", "sprint", "san paolo", "mercedes", "ferrari"],
+    "subject": "driver:kimi_antonelli"
   }
 ]
 
 def generate():
-    print(f"Generating {len(PILLS_SESSION_DRIVEN)} active season F1 pills (Post-Austin & Pre-Mexico/Brazil)...")
-    
+    print(f"Generating {len(PILLS_2026)} strictly accurate 2026 F1 pills...")
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(PILLS_SESSION_DRIVEN, f, ensure_ascii=False, indent=2)
-    
+        json.dump(PILLS_2026, f, ensure_ascii=False, indent=2)
     with open(PUBLIC_DATA_DIR / "pills.json", "w", encoding="utf-8") as f:
-        json.dump(PILLS_SESSION_DRIVEN, f, ensure_ascii=False, indent=2)
-
+        json.dump(PILLS_2026, f, ensure_ascii=False, indent=2)
     print(f"Saved to {OUTPUT_FILE} and {PUBLIC_DATA_DIR / 'pills.json'}")
 
 if __name__ == "__main__":
