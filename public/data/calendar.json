@@ -1,0 +1,712 @@
+[
+  {
+    "season": "2024",
+    "round": "1",
+    "race_name": "Bahrain Grand Prix",
+    "circuit_id": "bahrain",
+    "date": "2024-03-02",
+    "time_utc": "15:00:00Z",
+    "day_of_week_it": "Sabato",
+    "day_of_week_en": "Saturday"
+  },
+  {
+    "season": "2024",
+    "round": "2",
+    "race_name": "Saudi Arabian Grand Prix",
+    "circuit_id": "jeddah",
+    "date": "2024-03-09",
+    "time_utc": "17:00:00Z",
+    "day_of_week_it": "Sabato",
+    "day_of_week_en": "Saturday"
+  },
+  {
+    "season": "2024",
+    "round": "3",
+    "race_name": "Australian Grand Prix",
+    "circuit_id": "albert_park",
+    "date": "2024-03-24",
+    "time_utc": "04:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "4",
+    "race_name": "Japanese Grand Prix",
+    "circuit_id": "suzuka",
+    "date": "2024-04-07",
+    "time_utc": "05:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "5",
+    "race_name": "Chinese Grand Prix",
+    "circuit_id": "shanghai",
+    "date": "2024-04-21",
+    "time_utc": "07:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "6",
+    "race_name": "Miami Grand Prix",
+    "circuit_id": "miami",
+    "date": "2024-05-05",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "7",
+    "race_name": "Emilia Romagna Grand Prix",
+    "circuit_id": "imola",
+    "date": "2024-05-19",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "8",
+    "race_name": "Monaco Grand Prix",
+    "circuit_id": "monaco",
+    "date": "2024-05-26",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "9",
+    "race_name": "Canadian Grand Prix",
+    "circuit_id": "villeneuve",
+    "date": "2024-06-09",
+    "time_utc": "18:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "10",
+    "race_name": "Spanish Grand Prix",
+    "circuit_id": "catalunya",
+    "date": "2024-06-23",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "11",
+    "race_name": "Austrian Grand Prix",
+    "circuit_id": "red_bull_ring",
+    "date": "2024-06-30",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "12",
+    "race_name": "British Grand Prix",
+    "circuit_id": "silverstone",
+    "date": "2024-07-07",
+    "time_utc": "14:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "13",
+    "race_name": "Hungarian Grand Prix",
+    "circuit_id": "hungaroring",
+    "date": "2024-07-21",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "14",
+    "race_name": "Belgian Grand Prix",
+    "circuit_id": "spa",
+    "date": "2024-07-28",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "15",
+    "race_name": "Dutch Grand Prix",
+    "circuit_id": "zandvoort",
+    "date": "2024-08-25",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "16",
+    "race_name": "Italian Grand Prix",
+    "circuit_id": "monza",
+    "date": "2024-09-01",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "17",
+    "race_name": "Azerbaijan Grand Prix",
+    "circuit_id": "baku",
+    "date": "2024-09-15",
+    "time_utc": "11:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "18",
+    "race_name": "Singapore Grand Prix",
+    "circuit_id": "marina_bay",
+    "date": "2024-09-22",
+    "time_utc": "12:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "19",
+    "race_name": "United States Grand Prix",
+    "circuit_id": "americas",
+    "date": "2024-10-20",
+    "time_utc": "19:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "20",
+    "race_name": "Mexico City Grand Prix",
+    "circuit_id": "rodriguez",
+    "date": "2024-10-27",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "21",
+    "race_name": "São Paulo Grand Prix",
+    "circuit_id": "interlagos",
+    "date": "2024-11-03",
+    "time_utc": "17:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "22",
+    "race_name": "Las Vegas Grand Prix",
+    "circuit_id": "vegas",
+    "date": "2024-11-23",
+    "time_utc": "06:00:00Z",
+    "day_of_week_it": "Sabato",
+    "day_of_week_en": "Saturday"
+  },
+  {
+    "season": "2024",
+    "round": "23",
+    "race_name": "Qatar Grand Prix",
+    "circuit_id": "losail",
+    "date": "2024-12-01",
+    "time_utc": "16:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2024",
+    "round": "24",
+    "race_name": "Abu Dhabi Grand Prix",
+    "circuit_id": "yas_marina",
+    "date": "2024-12-08",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "1",
+    "race_name": "Australian Grand Prix",
+    "circuit_id": "albert_park",
+    "date": "2025-03-16",
+    "time_utc": "04:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "2",
+    "race_name": "Chinese Grand Prix",
+    "circuit_id": "shanghai",
+    "date": "2025-03-23",
+    "time_utc": "07:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "3",
+    "race_name": "Japanese Grand Prix",
+    "circuit_id": "suzuka",
+    "date": "2025-04-06",
+    "time_utc": "05:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "4",
+    "race_name": "Bahrain Grand Prix",
+    "circuit_id": "bahrain",
+    "date": "2025-04-13",
+    "time_utc": "15:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "5",
+    "race_name": "Saudi Arabian Grand Prix",
+    "circuit_id": "jeddah",
+    "date": "2025-04-20",
+    "time_utc": "17:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "6",
+    "race_name": "Miami Grand Prix",
+    "circuit_id": "miami",
+    "date": "2025-05-04",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "7",
+    "race_name": "Emilia Romagna Grand Prix",
+    "circuit_id": "imola",
+    "date": "2025-05-18",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "8",
+    "race_name": "Monaco Grand Prix",
+    "circuit_id": "monaco",
+    "date": "2025-05-25",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "9",
+    "race_name": "Spanish Grand Prix",
+    "circuit_id": "catalunya",
+    "date": "2025-06-01",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "10",
+    "race_name": "Canadian Grand Prix",
+    "circuit_id": "villeneuve",
+    "date": "2025-06-15",
+    "time_utc": "18:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "11",
+    "race_name": "Austrian Grand Prix",
+    "circuit_id": "red_bull_ring",
+    "date": "2025-06-29",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "12",
+    "race_name": "British Grand Prix",
+    "circuit_id": "silverstone",
+    "date": "2025-07-06",
+    "time_utc": "14:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "13",
+    "race_name": "Belgian Grand Prix",
+    "circuit_id": "spa",
+    "date": "2025-07-27",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "14",
+    "race_name": "Hungarian Grand Prix",
+    "circuit_id": "hungaroring",
+    "date": "2025-08-03",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "15",
+    "race_name": "Dutch Grand Prix",
+    "circuit_id": "zandvoort",
+    "date": "2025-08-31",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "16",
+    "race_name": "Italian Grand Prix",
+    "circuit_id": "monza",
+    "date": "2025-09-07",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "17",
+    "race_name": "Azerbaijan Grand Prix",
+    "circuit_id": "baku",
+    "date": "2025-09-21",
+    "time_utc": "11:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "18",
+    "race_name": "Singapore Grand Prix",
+    "circuit_id": "marina_bay",
+    "date": "2025-10-05",
+    "time_utc": "12:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "19",
+    "race_name": "United States Grand Prix",
+    "circuit_id": "americas",
+    "date": "2025-10-19",
+    "time_utc": "19:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "20",
+    "race_name": "Mexico City Grand Prix",
+    "circuit_id": "rodriguez",
+    "date": "2025-10-26",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "21",
+    "race_name": "São Paulo Grand Prix",
+    "circuit_id": "interlagos",
+    "date": "2025-11-09",
+    "time_utc": "17:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "22",
+    "race_name": "Las Vegas Grand Prix",
+    "circuit_id": "vegas",
+    "date": "2025-11-23",
+    "time_utc": "04:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "23",
+    "race_name": "Qatar Grand Prix",
+    "circuit_id": "losail",
+    "date": "2025-11-30",
+    "time_utc": "16:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2025",
+    "round": "24",
+    "race_name": "Abu Dhabi Grand Prix",
+    "circuit_id": "yas_marina",
+    "date": "2025-12-07",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "1",
+    "race_name": "Australian Grand Prix",
+    "circuit_id": "albert_park",
+    "date": "2026-03-08",
+    "time_utc": "04:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "2",
+    "race_name": "Chinese Grand Prix",
+    "circuit_id": "shanghai",
+    "date": "2026-03-15",
+    "time_utc": "07:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "3",
+    "race_name": "Japanese Grand Prix",
+    "circuit_id": "suzuka",
+    "date": "2026-03-29",
+    "time_utc": "05:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "4",
+    "race_name": "Miami Grand Prix",
+    "circuit_id": "miami",
+    "date": "2026-05-03",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "5",
+    "race_name": "Canadian Grand Prix",
+    "circuit_id": "villeneuve",
+    "date": "2026-05-24",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "6",
+    "race_name": "Monaco Grand Prix",
+    "circuit_id": "monaco",
+    "date": "2026-06-07",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "7",
+    "race_name": "Barcelona Grand Prix",
+    "circuit_id": "catalunya",
+    "date": "2026-06-14",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "8",
+    "race_name": "Austrian Grand Prix",
+    "circuit_id": "red_bull_ring",
+    "date": "2026-06-28",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "9",
+    "race_name": "British Grand Prix",
+    "circuit_id": "silverstone",
+    "date": "2026-07-05",
+    "time_utc": "14:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "10",
+    "race_name": "Belgian Grand Prix",
+    "circuit_id": "spa",
+    "date": "2026-07-19",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "11",
+    "race_name": "Hungarian Grand Prix",
+    "circuit_id": "hungaroring",
+    "date": "2026-07-26",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "12",
+    "race_name": "Dutch Grand Prix",
+    "circuit_id": "zandvoort",
+    "date": "2026-08-23",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "13",
+    "race_name": "Italian Grand Prix",
+    "circuit_id": "monza",
+    "date": "2026-09-06",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "14",
+    "race_name": "Spanish Grand Prix",
+    "circuit_id": "madring",
+    "date": "2026-09-13",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "15",
+    "race_name": "Azerbaijan Grand Prix",
+    "circuit_id": "baku",
+    "date": "2026-09-26",
+    "time_utc": "11:00:00Z",
+    "day_of_week_it": "Sabato",
+    "day_of_week_en": "Saturday"
+  },
+  {
+    "season": "2026",
+    "round": "16",
+    "race_name": "Bahrain Grand Prix in Malaysia",
+    "circuit_id": "sepang",
+    "date": "2026-10-04",
+    "time_utc": "07:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "17",
+    "race_name": "Singapore Grand Prix",
+    "circuit_id": "marina_bay",
+    "date": "2026-10-11",
+    "time_utc": "12:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "18",
+    "race_name": "United States Grand Prix",
+    "circuit_id": "americas",
+    "date": "2026-10-25",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "19",
+    "race_name": "Mexico City Grand Prix",
+    "circuit_id": "rodriguez",
+    "date": "2026-11-01",
+    "time_utc": "20:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "20",
+    "race_name": "Brazilian Grand Prix",
+    "circuit_id": "interlagos",
+    "date": "2026-11-08",
+    "time_utc": "17:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "21",
+    "race_name": "Las Vegas Grand Prix",
+    "circuit_id": "vegas",
+    "date": "2026-11-22",
+    "time_utc": "04:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "22",
+    "race_name": "Qatar Grand Prix",
+    "circuit_id": "losail",
+    "date": "2026-11-29",
+    "time_utc": "16:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  },
+  {
+    "season": "2026",
+    "round": "23",
+    "race_name": "Abu Dhabi Grand Prix",
+    "circuit_id": "yas_marina",
+    "date": "2026-12-06",
+    "time_utc": "13:00:00Z",
+    "day_of_week_it": "Domenica",
+    "day_of_week_en": "Sunday"
+  }
+]

@@ -1,0 +1,308 @@
+[
+  {
+    "lineage_id": "lineage_mercedes",
+    "team_name_historical": "Tyrrell",
+    "year_from": "1968",
+    "year_to": "1998",
+    "factory_city": "Ockham",
+    "factory_country": "UK",
+    "current_team_id": "mercedes"
+  },
+  {
+    "lineage_id": "lineage_mercedes",
+    "team_name_historical": "BAR",
+    "year_from": "1999",
+    "year_to": "2005",
+    "factory_city": "Brackley",
+    "factory_country": "UK",
+    "current_team_id": "mercedes"
+  },
+  {
+    "lineage_id": "lineage_mercedes",
+    "team_name_historical": "Honda",
+    "year_from": "2006",
+    "year_to": "2008",
+    "factory_city": "Brackley",
+    "factory_country": "UK",
+    "current_team_id": "mercedes"
+  },
+  {
+    "lineage_id": "lineage_mercedes",
+    "team_name_historical": "Brawn GP",
+    "year_from": "2009",
+    "year_to": "2009",
+    "factory_city": "Brackley",
+    "factory_country": "UK",
+    "current_team_id": "mercedes"
+  },
+  {
+    "lineage_id": "lineage_mercedes",
+    "team_name_historical": "Mercedes",
+    "year_from": "2010",
+    "year_to": "2026",
+    "factory_city": "Brackley",
+    "factory_country": "UK",
+    "current_team_id": "mercedes"
+  },
+  {
+    "lineage_id": "lineage_red_bull",
+    "team_name_historical": "Stewart",
+    "year_from": "1997",
+    "year_to": "1999",
+    "factory_city": "Milton Keynes",
+    "factory_country": "UK",
+    "current_team_id": "red_bull"
+  },
+  {
+    "lineage_id": "lineage_red_bull",
+    "team_name_historical": "Jaguar",
+    "year_from": "2000",
+    "year_to": "2004",
+    "factory_city": "Milton Keynes",
+    "factory_country": "UK",
+    "current_team_id": "red_bull"
+  },
+  {
+    "lineage_id": "lineage_red_bull",
+    "team_name_historical": "Red Bull",
+    "year_from": "2005",
+    "year_to": "2026",
+    "factory_city": "Milton Keynes",
+    "factory_country": "UK",
+    "current_team_id": "red_bull"
+  },
+  {
+    "lineage_id": "lineage_alpine",
+    "team_name_historical": "Toleman",
+    "year_from": "1981",
+    "year_to": "1985",
+    "factory_city": "Witney",
+    "factory_country": "UK",
+    "current_team_id": "alpine"
+  },
+  {
+    "lineage_id": "lineage_alpine",
+    "team_name_historical": "Benetton",
+    "year_from": "1986",
+    "year_to": "2001",
+    "factory_city": "Enstone",
+    "factory_country": "UK",
+    "current_team_id": "alpine"
+  },
+  {
+    "lineage_id": "lineage_alpine",
+    "team_name_historical": "Renault",
+    "year_from": "2002",
+    "year_to": "2010",
+    "factory_city": "Enstone",
+    "factory_country": "UK",
+    "current_team_id": "alpine"
+  },
+  {
+    "lineage_id": "lineage_alpine",
+    "team_name_historical": "Lotus F1",
+    "year_from": "2011",
+    "year_to": "2015",
+    "factory_city": "Enstone",
+    "factory_country": "UK",
+    "current_team_id": "alpine"
+  },
+  {
+    "lineage_id": "lineage_alpine",
+    "team_name_historical": "Renault",
+    "year_from": "2016",
+    "year_to": "2020",
+    "factory_city": "Enstone",
+    "factory_country": "UK",
+    "current_team_id": "alpine"
+  },
+  {
+    "lineage_id": "lineage_alpine",
+    "team_name_historical": "Alpine",
+    "year_from": "2021",
+    "year_to": "2026",
+    "factory_city": "Enstone",
+    "factory_country": "UK",
+    "current_team_id": "alpine"
+  },
+  {
+    "lineage_id": "lineage_aston_martin",
+    "team_name_historical": "Jordan",
+    "year_from": "1991",
+    "year_to": "2005",
+    "factory_city": "Silverstone",
+    "factory_country": "UK",
+    "current_team_id": "aston_martin"
+  },
+  {
+    "lineage_id": "lineage_aston_martin",
+    "team_name_historical": "MF1 Racing",
+    "year_from": "2006",
+    "year_to": "2006",
+    "factory_city": "Silverstone",
+    "factory_country": "UK",
+    "current_team_id": "aston_martin"
+  },
+  {
+    "lineage_id": "lineage_aston_martin",
+    "team_name_historical": "Spyker",
+    "year_from": "2007",
+    "year_to": "2007",
+    "factory_city": "Silverstone",
+    "factory_country": "UK",
+    "current_team_id": "aston_martin"
+  },
+  {
+    "lineage_id": "lineage_aston_martin",
+    "team_name_historical": "Force India",
+    "year_from": "2008",
+    "year_to": "2018",
+    "factory_city": "Silverstone",
+    "factory_country": "UK",
+    "current_team_id": "aston_martin"
+  },
+  {
+    "lineage_id": "lineage_aston_martin",
+    "team_name_historical": "Racing Point",
+    "year_from": "2018",
+    "year_to": "2020",
+    "factory_city": "Silverstone",
+    "factory_country": "UK",
+    "current_team_id": "aston_martin"
+  },
+  {
+    "lineage_id": "lineage_aston_martin",
+    "team_name_historical": "Aston Martin",
+    "year_from": "2021",
+    "year_to": "2026",
+    "factory_city": "Silverstone",
+    "factory_country": "UK",
+    "current_team_id": "aston_martin"
+  },
+  {
+    "lineage_id": "lineage_rb",
+    "team_name_historical": "Minardi",
+    "year_from": "1985",
+    "year_to": "2005",
+    "factory_city": "Faenza",
+    "factory_country": "Italy",
+    "current_team_id": "rb"
+  },
+  {
+    "lineage_id": "lineage_rb",
+    "team_name_historical": "Toro Rosso",
+    "year_from": "2006",
+    "year_to": "2019",
+    "factory_city": "Faenza",
+    "factory_country": "Italy",
+    "current_team_id": "rb"
+  },
+  {
+    "lineage_id": "lineage_rb",
+    "team_name_historical": "AlphaTauri",
+    "year_from": "2020",
+    "year_to": "2023",
+    "factory_city": "Faenza",
+    "factory_country": "Italy",
+    "current_team_id": "rb"
+  },
+  {
+    "lineage_id": "lineage_rb",
+    "team_name_historical": "RB",
+    "year_from": "2024",
+    "year_to": "2026",
+    "factory_city": "Faenza",
+    "factory_country": "Italy",
+    "current_team_id": "rb"
+  },
+  {
+    "lineage_id": "lineage_sauber",
+    "team_name_historical": "Sauber",
+    "year_from": "1993",
+    "year_to": "2005",
+    "factory_city": "Hinwil",
+    "factory_country": "Switzerland",
+    "current_team_id": "sauber"
+  },
+  {
+    "lineage_id": "lineage_sauber",
+    "team_name_historical": "BMW Sauber",
+    "year_from": "2006",
+    "year_to": "2009",
+    "factory_city": "Hinwil",
+    "factory_country": "Switzerland",
+    "current_team_id": "sauber"
+  },
+  {
+    "lineage_id": "lineage_sauber",
+    "team_name_historical": "Sauber",
+    "year_from": "2010",
+    "year_to": "2018",
+    "factory_city": "Hinwil",
+    "factory_country": "Switzerland",
+    "current_team_id": "sauber"
+  },
+  {
+    "lineage_id": "lineage_sauber",
+    "team_name_historical": "Alfa Romeo",
+    "year_from": "2019",
+    "year_to": "2023",
+    "factory_city": "Hinwil",
+    "factory_country": "Switzerland",
+    "current_team_id": "sauber"
+  },
+  {
+    "lineage_id": "lineage_sauber",
+    "team_name_historical": "Kick Sauber",
+    "year_from": "2024",
+    "year_to": "2025",
+    "factory_city": "Hinwil",
+    "factory_country": "Switzerland",
+    "current_team_id": "audi"
+  },
+  {
+    "lineage_id": "lineage_sauber",
+    "team_name_historical": "Audi",
+    "year_from": "2026",
+    "year_to": "2030",
+    "factory_city": "Hinwil",
+    "factory_country": "Switzerland",
+    "current_team_id": "audi"
+  },
+  {
+    "lineage_id": "lineage_ferrari",
+    "team_name_historical": "Ferrari",
+    "year_from": "1950",
+    "year_to": "2026",
+    "factory_city": "Maranello",
+    "factory_country": "Italy",
+    "current_team_id": "ferrari"
+  },
+  {
+    "lineage_id": "lineage_mclaren",
+    "team_name_historical": "McLaren",
+    "year_from": "1966",
+    "year_to": "2026",
+    "factory_city": "Woking",
+    "factory_country": "UK",
+    "current_team_id": "mclaren"
+  },
+  {
+    "lineage_id": "lineage_williams",
+    "team_name_historical": "Williams",
+    "year_from": "1977",
+    "year_to": "2026",
+    "factory_city": "Grove",
+    "factory_country": "UK",
+    "current_team_id": "williams"
+  },
+  {
+    "lineage_id": "lineage_haas",
+    "team_name_historical": "Haas",
+    "year_from": "2016",
+    "year_to": "2026",
+    "factory_city": "Kannapolis",
+    "factory_country": "USA",
+    "current_team_id": "haas"
+  }
+]

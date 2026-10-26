@@ -1,0 +1,18 @@
+{
+  "name": "F1 Stats Pills — Formula 1 Curiosità & Record",
+  "short_name": "F1 Pills",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080a0f",
+  "theme_color": "#e10600",
+  "description": "Pillole statistiche, coincidenze assurde, record storici e contesto pre-gara sulla Formula 1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

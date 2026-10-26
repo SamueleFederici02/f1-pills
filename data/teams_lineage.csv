@@ -1,0 +1,35 @@
+lineage_id,team_name_historical,year_from,year_to,factory_city,factory_country,current_team_id
+lineage_mercedes,Tyrrell,1968,1998,Ockham,UK,mercedes
+lineage_mercedes,BAR,1999,2005,Brackley,UK,mercedes
+lineage_mercedes,Honda,2006,2008,Brackley,UK,mercedes
+lineage_mercedes,Brawn GP,2009,2009,Brackley,UK,mercedes
+lineage_mercedes,Mercedes,2010,2026,Brackley,UK,mercedes
+lineage_red_bull,Stewart,1997,1999,Milton Keynes,UK,red_bull
+lineage_red_bull,Jaguar,2000,2004,Milton Keynes,UK,red_bull
+lineage_red_bull,Red Bull,2005,2026,Milton Keynes,UK,red_bull
+lineage_alpine,Toleman,1981,1985,Witney,UK,alpine
+lineage_alpine,Benetton,1986,2001,Enstone,UK,alpine
+lineage_alpine,Renault,2002,2010,Enstone,UK,alpine
+lineage_alpine,Lotus F1,2011,2015,Enstone,UK,alpine
+lineage_alpine,Renault,2016,2020,Enstone,UK,alpine
+lineage_alpine,Alpine,2021,2026,Enstone,UK,alpine
+lineage_aston_martin,Jordan,1991,2005,Silverstone,UK,aston_martin
+lineage_aston_martin,MF1 Racing,2006,2006,Silverstone,UK,aston_martin
+lineage_aston_martin,Spyker,2007,2007,Silverstone,UK,aston_martin
+lineage_aston_martin,Force India,2008,2018,Silverstone,UK,aston_martin
+lineage_aston_martin,Racing Point,2018,2020,Silverstone,UK,aston_martin
+lineage_aston_martin,Aston Martin,2021,2026,Silverstone,UK,aston_martin
+lineage_rb,Minardi,1985,2005,Faenza,Italy,rb
+lineage_rb,Toro Rosso,2006,2019,Faenza,Italy,rb
+lineage_rb,AlphaTauri,2020,2023,Faenza,Italy,rb
+lineage_rb,RB,2024,2026,Faenza,Italy,rb
+lineage_sauber,Sauber,1993,2005,Hinwil,Switzerland,sauber
+lineage_sauber,BMW Sauber,2006,2009,Hinwil,Switzerland,sauber
+lineage_sauber,Sauber,2010,2018,Hinwil,Switzerland,sauber
+lineage_sauber,Alfa Romeo,2019,2023,Hinwil,Switzerland,sauber
+lineage_sauber,Kick Sauber,2024,2025,Hinwil,Switzerland,audi
+lineage_sauber,Audi,2026,2030,Hinwil,Switzerland,audi
+lineage_ferrari,Ferrari,1950,2026,Maranello,Italy,ferrari
+lineage_mclaren,McLaren,1966,2026,Woking,UK,mclaren
+lineage_williams,Williams,1977,2026,Grove,UK,williams
+lineage_haas,Haas,2016,2026,Kannapolis,USA,haas
