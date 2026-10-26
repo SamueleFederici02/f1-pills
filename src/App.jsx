@@ -5,6 +5,7 @@ import SearchWhatIf from './components/SearchWhatIf';
 import AnomaliesView from './components/AnomaliesView';
 import LineageView from './components/LineageView';
 import DriversCircuitsView from './components/DriversCircuitsView';
+import StandingsView from './components/StandingsView';
 import SettingsModal from './components/SettingsModal';
 import SocialShareModal from './components/SocialShareModal';
 import PillCard from './components/PillCard';
@@ -28,6 +29,7 @@ export default function App() {
   const [lineages, setLineages] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [calendar, setCalendar] = useState([]);
+  const [standings, setStandings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Bookmarks in localStorage
@@ -59,14 +61,16 @@ export default function App() {
           circuitsRes,
           lineagesRes,
           driversRes,
-          calendarRes
+          calendarRes,
+          standingsRes
         ] = await Promise.all([
           fetch('/data/pills.json'),
           fetch('/data/anomalies.json'),
           fetch('/data/circuits.json'),
           fetch('/data/lineages.json'),
           fetch('/data/drivers.json'),
-          fetch('/data/calendar.json')
+          fetch('/data/calendar.json'),
+          fetch('/data/standings_2026.json')
         ]);
 
         const [
@@ -75,14 +79,16 @@ export default function App() {
           circuitsData,
           lineagesData,
           driversData,
-          calendarData
+          calendarData,
+          standingsData
         ] = await Promise.all([
           pillsRes.json(),
           anomaliesRes.json(),
           circuitsRes.json(),
           lineagesRes.json(),
           driversRes.json(),
-          calendarRes.json()
+          calendarRes.json(),
+          standingsRes.json()
         ]);
 
         setPills(pillsData);
@@ -91,6 +97,7 @@ export default function App() {
         setLineages(lineagesData);
         setDrivers(driversData);
         setCalendar(calendarData);
+        setStandings(standingsData);
       } catch (err) {
         console.error("Errore nel caricamento dei dati:", err);
       } finally {
@@ -149,6 +156,11 @@ export default function App() {
                 onOpenShare={(p) => setSharePill(p)}
                 calendar={calendar}
               />
+            )}
+
+            {/* Tab: Standings 2026 */}
+            {currentTab === 'standings' && (
+              <StandingsView standings={standings} />
             )}
 
             {/* Tab: Anomalies & 107 Trivia */}
@@ -249,15 +261,15 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setCurrentTab('anomalies')}
+            onClick={() => setCurrentTab('standings')}
             className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-              currentTab === 'anomalies'
-                ? 'text-purple-400 scale-105'
+              currentTab === 'standings'
+                ? 'text-yellow-400 scale-105'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-[10px] font-bold font-f1-display tracking-tight">Anomalie</span>
+            <Trophy className="w-5 h-5" />
+            <span className="text-[10px] font-bold font-f1-display tracking-tight">Classifica</span>
           </button>
 
           <button
@@ -270,6 +282,18 @@ export default function App() {
           >
             <HelpCircle className="w-5 h-5" />
             <span className="text-[10px] font-bold font-f1-display tracking-tight">What If</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('anomalies')}
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+              currentTab === 'anomalies'
+                ? 'text-purple-400 scale-105'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span className="text-[10px] font-bold font-f1-display tracking-tight">Anomalie</span>
           </button>
 
           <button

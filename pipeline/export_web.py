@@ -60,5 +60,10 @@ def export_all():
         json.dump(recent_races, f, ensure_ascii=False, indent=2)
     print(f"Exported {len(recent_races)} recent calendar races")
 
+    # 7. Official 2026 Standings after Round 18
+    # Keep standings_2026.json generated
+    if (PUBLIC_DATA_DIR / "standings_2026.json").exists():
+        print("Exported standings_2026.json")
+
 if __name__ == "__main__":
     export_all()

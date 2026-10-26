@@ -1,0 +1,266 @@
+{
+  "season": 2026,
+  "round": 18,
+  "last_race": "United States Grand Prix (Austin)",
+  "next_race": "Mexico City Grand Prix",
+  "drivers": [
+    {
+      "position": 1,
+      "driver_id": "kimi-antonelli",
+      "name": "Kimi Antonelli",
+      "team": "mercedes",
+      "points": 365.0,
+      "gap": 0
+    },
+    {
+      "position": 2,
+      "driver_id": "george-russell",
+      "name": "George Russell",
+      "team": "mercedes",
+      "points": 242.0,
+      "gap": -123.0
+    },
+    {
+      "position": 3,
+      "driver_id": "lewis-hamilton",
+      "name": "Lewis Hamilton",
+      "team": "ferrari",
+      "points": 241.0,
+      "gap": -124.0
+    },
+    {
+      "position": 4,
+      "driver_id": "max-verstappen",
+      "name": "Max Verstappen",
+      "team": "red-bull",
+      "points": 236.0,
+      "gap": -129.0
+    },
+    {
+      "position": 5,
+      "driver_id": "charles-leclerc",
+      "name": "Charles Leclerc",
+      "team": "ferrari",
+      "points": 233.0,
+      "gap": -132.0
+    },
+    {
+      "position": 6,
+      "driver_id": "lando-norris",
+      "name": "Lando Norris",
+      "team": "mclaren",
+      "points": 211.0,
+      "gap": -154.0
+    },
+    {
+      "position": 7,
+      "driver_id": "oscar-piastri",
+      "name": "Oscar Piastri",
+      "team": "mclaren",
+      "points": 144.0,
+      "gap": -221.0
+    },
+    {
+      "position": 8,
+      "driver_id": "isack-hadjar",
+      "name": "Isack Hadjar",
+      "team": "red-bull",
+      "points": 105.0,
+      "gap": -260.0
+    },
+    {
+      "position": 9,
+      "driver_id": "liam-lawson",
+      "name": "Liam Lawson",
+      "team": "racing-bulls",
+      "points": 77.0,
+      "gap": -288.0
+    },
+    {
+      "position": 10,
+      "driver_id": "pierre-gasly",
+      "name": "Pierre Gasly",
+      "team": "alpine",
+      "points": 42.0,
+      "gap": -323.0
+    },
+    {
+      "position": 11,
+      "driver_id": "arvid-lindblad",
+      "name": "Arvid Lindblad",
+      "team": "racing-bulls",
+      "points": 38.0,
+      "gap": -327.0
+    },
+    {
+      "position": 12,
+      "driver_id": "franco-colapinto",
+      "name": "Franco Colapinto",
+      "team": "alpine",
+      "points": 27.0,
+      "gap": -338.0
+    },
+    {
+      "position": 13,
+      "driver_id": "oliver-bearman",
+      "name": "Oliver Bearman",
+      "team": "haas",
+      "points": 23.0,
+      "gap": -342.0
+    },
+    {
+      "position": 14,
+      "driver_id": "nico-hulkenberg",
+      "name": "Nico Hülkenberg",
+      "team": "audi",
+      "points": 13.0,
+      "gap": -352.0
+    },
+    {
+      "position": 15,
+      "driver_id": "gabriel-bortoleto",
+      "name": "Gabriel Bortoleto",
+      "team": "audi",
+      "points": 10.0,
+      "gap": -355.0
+    },
+    {
+      "position": 16,
+      "driver_id": "esteban-ocon",
+      "name": "Esteban Ocon",
+      "team": "haas",
+      "points": 7.0,
+      "gap": -358.0
+    },
+    {
+      "position": 17,
+      "driver_id": "fernando-alonso",
+      "name": "Fernando Alonso",
+      "team": "aston-martin",
+      "points": 7.0,
+      "gap": -358.0
+    },
+    {
+      "position": 18,
+      "driver_id": "carlos-sainz-jr",
+      "name": "Carlos Sainz",
+      "team": "williams",
+      "points": 7.0,
+      "gap": -358.0
+    },
+    {
+      "position": 19,
+      "driver_id": "alexander-albon",
+      "name": "Alexander Albon",
+      "team": "williams",
+      "points": 5.0,
+      "gap": -360.0
+    },
+    {
+      "position": 20,
+      "driver_id": "yuki-tsunoda",
+      "name": "Yuki Tsunoda",
+      "team": "other",
+      "points": 1.0,
+      "gap": -364.0
+    },
+    {
+      "position": 21,
+      "driver_id": "lance-stroll",
+      "name": "Lance Stroll",
+      "team": "aston-martin",
+      "points": 0.0,
+      "gap": -365.0
+    },
+    {
+      "position": 22,
+      "driver_id": "valtteri-bottas",
+      "name": "Valtteri Bottas",
+      "team": "cadillac",
+      "points": 0.0,
+      "gap": -365.0
+    },
+    {
+      "position": 23,
+      "driver_id": "sergio-perez",
+      "name": "Sergio Perez",
+      "team": "cadillac",
+      "points": 0.0,
+      "gap": -365.0
+    }
+  ],
+  "constructors": [
+    {
+      "position": 1,
+      "team_id": "mercedes",
+      "name": "Mercedes-AMG F1",
+      "points": 607.0
+    },
+    {
+      "position": 2,
+      "team_id": "ferrari",
+      "name": "Scuderia Ferrari",
+      "points": 474.0
+    },
+    {
+      "position": 3,
+      "team_id": "mclaren",
+      "name": "McLaren F1 Team",
+      "points": 355.0
+    },
+    {
+      "position": 4,
+      "team_id": "red-bull",
+      "name": "Red Bull Racing",
+      "points": 341.0
+    },
+    {
+      "position": 5,
+      "team_id": "racing-bulls",
+      "name": "Visa Cash App RB",
+      "points": 115.0
+    },
+    {
+      "position": 6,
+      "team_id": "alpine",
+      "name": "Alpine F1 Team",
+      "points": 69.0
+    },
+    {
+      "position": 7,
+      "team_id": "haas",
+      "name": "Haas F1 Team",
+      "points": 30.0
+    },
+    {
+      "position": 8,
+      "team_id": "audi",
+      "name": "Audi Sport F1",
+      "points": 23.0
+    },
+    {
+      "position": 9,
+      "team_id": "williams",
+      "name": "Williams Racing",
+      "points": 12.0
+    },
+    {
+      "position": 10,
+      "team_id": "aston-martin",
+      "name": "Aston Martin Aramco",
+      "points": 7.0
+    },
+    {
+      "position": 11,
+      "team_id": "other",
+      "name": "Other",
+      "points": 1.0
+    },
+    {
+      "position": 12,
+      "team_id": "cadillac",
+      "name": "Cadillac F1 Team",
+      "points": 0.0
+    }
+  ]
+}
