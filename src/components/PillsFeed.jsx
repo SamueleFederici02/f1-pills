@@ -25,6 +25,15 @@ export default function PillsFeed({
   const [selectedTiming, setSelectedTiming] = useState('all');
   const [minAbsurdity, setMinAbsurdity] = useState(0);
 
+  // Filters focused on real stats and trivia:
+  const timingFilters = [
+    { id: 'all', label: 'Tutte le Pillole 🏁' },
+    { id: 'records', label: '📊 Record & Statistiche Serie' },
+    { id: 'curiosities', label: '🦄 Curiosità Assurde & Misure Nerd' },
+    { id: 'in_arrivo', label: '🟡 GP Attivo / In Arrivo' },
+    { id: 'appena_passata', label: '🟢 Ultimo GP Concluso' }
+  ];
+
   // Dynamic race context from calendar
   const todayStr = useMemo(() => {
     const d = new Date();
