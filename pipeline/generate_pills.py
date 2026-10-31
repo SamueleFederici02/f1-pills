@@ -20,6 +20,94 @@ PUBLIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTPUT_FILE = DATA_DIR / "pills.json"
 
+# ==============================================================================
+# TAVOLE DI CONOSCENZA TEMPORALE & GEOGRAFICA DINAMICA
+# ==============================================================================
+
+HISTORICAL_ANNIVERSARIES_CALENDAR = {
+    (11, 1): {
+        'year': 1883,
+        'name': "dell'enciclica 'Misericors Dei Filius' di Papa Leone XIII",
+        'desc': "la promulgazione dell'enciclica papale con cui Papa Leone XIII riformò la regola del Terzo Ordine Francescano",
+        'delirio': "In 76 anni di Formula 1, solo 3 edizioni iridate si sono corse il 1° Novembre: Giappone 1998 (titolo mondiale di Mika Häkkinen), Abu Dhabi 2009 e la gara odierna a Città del Messico. Inoltre la data coincide con la celebrazione tradizionale del 'Día de los Muertos'."
+    },
+    (11, 8): {
+        'year': 1895,
+        'name': "della scoperta dei raggi X da parte del fisico Wilhelm Röntgen",
+        'desc': "la scoperta rivoluzionaria dei raggi X nei laboratori dell'Università di Würzburg da parte del fisico Wilhelm Röntgen",
+        'delirio': "I raggi X oggi vengono utilizzati regolarmente dai commissari tecnici FIA nei controlli non distruttivi radiografici per scansionare il telaio in carbonio e i triangoli delle sospensioni dopo impatti violenti a oltre 250 km/h."
+    },
+    (11, 22): {
+        'year': 1964,
+        'name': "dell'inaugurazione del ponte Verrazzano a New York",
+        'desc': "l'inaugurazione dello storico ponte sospeso Verrazzano, dedicato al navigatore toscano Giovanni da Verrazzano",
+        'delirio': "La campata principale del ponte misura 1.298 metri: meno della metà della 'Strip' di Las Vegas (1.900 metri) percorsa in pieno gas dalle monoposto a oltre 350 km/h tra i casinò illuminati."
+    },
+    (11, 29): {
+        'year': 1929,
+        'name': "della prima trasvolata aerea del Polo Sud da parte di Richard Byrd",
+        'desc': "la prima storica trasvolata aerea sopra il Polo Sud geografico compiuta dall'esploratore statunitense Richard Byrd",
+        'delirio': "Nel deserto del Qatar le temperature dell'asfalto raggiungono i 42°C, con un delta termico di quasi 80°C rispetto ai -38°C registrati sul plateau antartico durante la storica trasvolata del 1929."
+    },
+    (12, 6): {
+        'year': 1877,
+        'name': "della prima registrazione della voce umana da parte di Thomas Edison",
+        'desc': "la prima registrazione e riproduzione della voce umana incisa da Thomas Edison con 'Mary Had a Little Lamb' sul fonografo a stagnola",
+        'delirio': "A Yas Marina, durante i 58 giri del GP notturno, i radiocomandi tra i 20 piloti e i rispettivi ingegneri di pista trasmettono oltre 4.500 secondi di tracce audio vocali criptate ad altissima fedeltà."
+    },
+    (10, 25): {
+        'year': 2007,
+        'name': "del primo volo commerciale passeggeri dell'Airbus A380",
+        'desc': "il decollo del primo volo di linea passeggeri dell'Airbus A380 da Singapore a Sydney",
+        'delirio': "Il peso massimo al decollo di un Airbus A380 (575.000 kg) equivale al peso combinato di 720 monoposto di F1 del 2026."
+    }
+}
+
+CIRCUIT_CAPACITY_VS_CITIES = {
+    'rodriguez': {
+        'section_name': 'tribune dello stadio Foro Sol (Estadio GNP Seguros)',
+        'capacity': 65000,
+        'city': 'Cervia',
+        'city_pop': 28800,
+        'delirio': "È l'unico stadio da baseball permanente al mondo attraversato a 200 km/h da monoposto di Formula 1: la conformazione a catino amplifica il boato della folla fino a 118 decibel, udibile dai piloti dentro il casco sopra il rombo dei propulsori V6 turbo-ibridi."
+    },
+    'interlagos': {
+        'section_name': 'tribune dell\'Autodromo di Interlagos',
+        'capacity': 80000,
+        'city': 'Varese',
+        'city_pop': 79000,
+        'delirio': "L'intero catino naturale delle curve 1 e 2 contiene un boato pari a un intero capoluogo di provincia lombardo che canta all'unisono al passaggio delle monoposto sulla Esse di Senna."
+    },
+    'las-vegas': {
+        'section_name': 'tribune allestite lungo la Strip di Las Vegas',
+        'capacity': 105000,
+        'city': 'Vicenza',
+        'city_pop': 108000,
+        'delirio': "I 6.2 chilometri illuminati a giorno da 40.000 faretti LED assorbono la stessa energia elettrica consumata da un centro urbano di 100.000 abitanti in una notte intera."
+    },
+    'lusail': {
+        'section_name': 'tribune del circuito internazionale di Lusail',
+        'capacity': 52000,
+        'city': 'Siena',
+        'city_pop': 53000,
+        'delirio': "L'impianto sorge nel deserto qatariota ed è climatizzato artificialmente nel paddock per proteggere 50.000 tifosi dall'escursione termica notturna."
+    },
+    'yas-marina': {
+        'section_name': 'tribune e yacht club di Yas Marina ad Abu Dhabi',
+        'capacity': 60000,
+        'city': 'Sanremo',
+        'city_pop': 55000,
+        'delirio': "La marina dello yacht club ospita oltre 200 imbarcazioni di lusso con un valore cumulativo che supera il PIL annuale di un piccolo stato insulare."
+    },
+    'americas': {
+        'section_name': 'tribune e colline panoramiche del Circuit of the Americas',
+        'capacity': 140000,
+        'city': 'Ferrara',
+        'city_pop': 130000,
+        'delirio': "L'intera popolazione di Ferrara potrebbe accomodarsi simultaneamente sulle tribune texane lasciando ancora 10.000 posti liberi verso la salita di Curva 1."
+    }
+}
+
 class F1StatsEngine:
     def __init__(self, target_date=None, target_round=None):
         self.races_df = pd.read_csv(DATA_DIR / "races_details.csv")
@@ -357,54 +445,83 @@ class F1StatsEngine:
         return None
 
     def generate_date_anniversary_pill(self):
-        """Sincronicità storica nel giorno della gara (Papale & F1)."""
+        """Sincronicità storica nel giorno della gara (Papale, Scienza, Aviazione & F1)."""
+        key = (self.curr_date.month, self.curr_date.day)
+        event = HISTORICAL_ANNIVERSARIES_CALENDAR.get(key)
+        if not event:
+            return None
+
+        anniversary_years = self.curr_date.year - event['year']
         circ_id = self.current_race.get('circuitId', '')
-        if self.curr_date.month == 11 and self.curr_date.day == 1:
-            return {
-                "id": f"stat_date_encyclical_round_{self.curr_round}",
-                "driver_id": "",
-                "driver_name": "Calendario Storico & Curiosità",
-                "team": "",
-                "timing_status": "in_arrivo",
-                "category": "curiosities",
-                "badge": "RICORRENZA STORICA • 1° NOVEMBRE",
-                "title": "Il GP si corre nel 143° anniversario dell'enciclica 'Misericors Dei Filius' di Papa Leone XIII",
-                "subtext": "La gara di domenica 1° Novembre coincide con la data esatta di pubblicazione dell'enciclica 'Misericors Dei Filius' promulgata da Papa Leone XIII il 1° novembre 1883. In 76 anni di storia della Formula 1, solo 3 Gran Premi mondiali si sono corsi il 1° Novembre: Giappone 1998 (con trionfo iridato di Häkkinen), Abu Dhabi 2009 e Città del Messico 2026.",
-                "delirio_text": "In Messico la data coincide inoltre con la celebrazione solenne del 'Día de los Muertos' (1-2 novembre), patrimonio UNESCO, rendendo l'atmosfera del paddock un crocevia unico tra liturgia storica e misticismo azteco.",
-                "year": 2026,
-                "circuit_id": circ_id,
-                "absurd": 0.92,
-                "state": "pre_gara",
-                "keywords": ["1 novembre", "enciclica", "leone xiii", "misericors dei filius", "abu dhabi 2009", "dia de los muertos"],
-                "subject": f"circuit:{circ_id}"
-            }
-        return None
+        
+        months_it = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"]
+        month_label = months_it[self.curr_date.month - 1].upper()
+
+        return {
+            "id": f"stat_date_anniversary_round_{self.curr_round}",
+            "driver_id": "",
+            "driver_name": "Calendario Storico & Curiosità",
+            "team": "",
+            "timing_status": "in_arrivo",
+            "category": "curiosities",
+            "badge": f"RICORRENZA STORICA • {self.curr_date.day}° {month_label}",
+            "title": f"Il GP si corre nel {anniversary_years}° anniversario {event['name']}",
+            "subtext": f"La data della gara ({self.curr_date.day} {months_it[self.curr_date.month - 1]}) coincide con la ricorrenza di {event['desc']} ({anniversary_years} anni fa esatti, nel {event['year']}).",
+            "delirio_text": event.get('delirio', ''),
+            "year": 2026,
+            "circuit_id": circ_id,
+            "absurd": 0.90,
+            "state": "pre_gara",
+            "keywords": ["anniversario", str(self.curr_date.day), event['name'], "storia", "ricorrenza"],
+            "subject": f"circuit:{circ_id}"
+        }
 
     def generate_stadium_capacity_vs_city_pill(self):
-        """Confronto surreale tra capienza delle tribune e intere città italiane."""
+        """Confronto surreale tra capienza delle tribune e intere città reali."""
         circ_id = self.current_race.get('circuitId', '')
-        country = str(self.current_race.get('grandPrixId', '')).lower()
+        item = CIRCUIT_CAPACITY_VS_CITIES.get(circ_id)
+        if not item:
+            # Check if any key is in grandPrixId or circuitId
+            for k, v in CIRCUIT_CAPACITY_VS_CITIES.items():
+                if k in circ_id or k in str(self.current_race.get('grandPrixId', '')):
+                    item = v
+                    break
 
-        if 'mexico' in country or 'rodriguez' in circ_id:
-            return {
-                "id": f"stat_stadium_capacity_cervia_round_{self.curr_round}",
-                "driver_id": "",
-                "driver_name": "Autodromo Hermanos Rodriguez",
-                "team": "",
-                "timing_status": "in_arrivo",
-                "category": "curiosities",
-                "badge": "CAPIENZA NERD • FORO SOL",
-                "title": "Le tribune del Foro Sol possono ospitare più di due volte l'intera popolazione di Cervia",
-                "subtext": "La spettacolare sezione dello stadio Foro Sol (Estadio GNP Seguros), dove le monoposto sfilano tra le curve 12 e 16, conta 65.000 posti a sedere. L'intera popolazione residente del comune di Cervia (28.800 abitanti) potrebbe riempire le gradinate per ben due volte consecutive, lasciando ancora oltre 7.400 seggiolini liberi.",
-                "delirio_text": "È l'unico stadio da baseball permanente al mondo attraversato a 200 km/h da monoposto di Formula 1: la conformazione a catino amplifica il boato della folla fino a 118 decibel, udibile dai piloti dentro il casco sopra il rombo dei propulsori V6 turbo-ibridi.",
-                "year": 2026,
-                "circuit_id": circ_id,
-                "absurd": 0.89,
-                "state": "pre_gara",
-                "keywords": ["foro sol", "cervia", "spettatori", "stadio", "messico", "decibel"],
-                "subject": f"circuit:{circ_id}"
-            }
-        return None
+        if not item:
+            return None
+
+        capacity = item['capacity']
+        city = item['city']
+        pop = item['city_pop']
+        section_name = item['section_name']
+
+        if capacity > pop:
+            times = capacity // pop
+            rem = capacity % pop
+            comparison_phrase = f"più di {times} volte" if times > 1 else "l'intera"
+            details = f"L'intera popolazione residente del comune di {city} ({pop:,} abitanti) potrebbe riempire le gradinate per {comparison_phrase} consecutive, lasciando ancora oltre {rem:,} seggiolini liberi.".replace(',', '.')
+        else:
+            pct = round((capacity / pop) * 100, 1)
+            details = f"Le tribune potrebbero accogliere contemporaneamente il {pct}% di tutti gli abitanti della città di {city} ({pop:,} residenti).".replace(',', '.')
+
+        return {
+            "id": f"stat_stadium_capacity_round_{self.curr_round}",
+            "driver_id": "",
+            "driver_name": self.current_race.get('officialName', 'Circuito F1'),
+            "team": "",
+            "timing_status": "in_arrivo",
+            "category": "curiosities",
+            "badge": f"CAPIENZA NERD • {circ_id.upper()}",
+            "title": f"Le {section_name} possono ospitare tutta la popolazione di {city}",
+            "subtext": f"La struttura conta una capienza omologata di {capacity:,} spettatori. {details}".replace(',', '.'),
+            "delirio_text": item.get('delirio', ''),
+            "year": 2026,
+            "circuit_id": circ_id,
+            "absurd": 0.89,
+            "state": "pre_gara",
+            "keywords": [circ_id, city, "spettatori", "capienza", "popolazione"],
+            "subject": f"circuit:{circ_id}"
+        }
 
     def generate_tricolor_flag_bortoleto_pill(self):
         """Coincidenza assurda: Paesi verde-bianco-rosso e piazzamenti di Bortoleto."""
