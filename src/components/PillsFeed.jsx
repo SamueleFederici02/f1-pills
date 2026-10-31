@@ -18,7 +18,8 @@ export default function PillsFeed({
   pills = [], 
   bookmarks = [], 
   onToggleBookmark, 
-  onOpenShare 
+  onOpenShare,
+  calendar = []
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTiming, setSelectedTiming] = useState('all');
@@ -31,12 +32,30 @@ export default function PillsFeed({
   }, []);
 
   const upcomingRace = useMemo(() => {
+    if (!calendar || !Array.isArray(calendar) || calendar.length === 0) {
+      return {
+        round: '19',
+        race_name: 'GP del Messico',
+        circuit_id: 'rodriguez',
+        date: '2026-11-01',
+        day_of_week_it: 'Domenica'
+      };
+    }
     const r26 = calendar.filter(c => String(c.season) === '2026');
     const future = r26.filter(c => c.date >= todayStr);
     return future.length > 0 ? future[0] : (r26.length > 0 ? r26[r26.length - 1] : null);
   }, [calendar, todayStr]);
 
   const pastRace = useMemo(() => {
+    if (!calendar || !Array.isArray(calendar) || calendar.length === 0) {
+      return {
+        round: '18',
+        race_name: 'GP degli Stati Uniti',
+        circuit_id: 'americas',
+        date: '2026-10-25',
+        day_of_week_it: 'Domenica'
+      };
+    }
     const r26 = calendar.filter(c => String(c.season) === '2026');
     const past = r26.filter(c => c.date < todayStr);
     return past.length > 0 ? past[past.length - 1] : (r26.length > 0 ? r26[0] : null);
