@@ -19,6 +19,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Python Dependencies
+        run: pip install pandas numpy
+
       - name: Generate & Export F1 Pills Data
         run: |
           python pipeline/generate_pills.py
