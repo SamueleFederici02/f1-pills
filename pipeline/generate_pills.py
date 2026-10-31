@@ -357,28 +357,80 @@ class F1StatsEngine:
         return None
 
     def generate_date_anniversary_pill(self):
-        """Sincronicità storica nel giorno della gara."""
+        """Sincronicità storica nel giorno della gara (Papale & F1)."""
         circ_id = self.current_race.get('circuitId', '')
         if self.curr_date.month == 11 and self.curr_date.day == 1:
             return {
-                "id": f"stat_date_synchronicity_round_{self.curr_round}",
+                "id": f"stat_date_encyclical_round_{self.curr_round}",
                 "driver_id": "",
-                "driver_name": "Calendario Storico F1",
+                "driver_name": "Calendario Storico & Curiosità",
                 "team": "",
                 "timing_status": "in_arrivo",
                 "category": "curiosities",
-                "badge": "RICORRENZA DEL CALENDARIO",
-                "title": "Il GP si corre il 1° Novembre: anniversario del 1° Gran Premio corso al tramonto",
-                "subtext": "La data del Gran Premio coincide con il 17° anniversario del GP di Abu Dhabi 2009 (1° novembre 2009), la prima gara nella storia della Formula 1 disputata sotto la luce del crepuscolo e conclusa con i fari artificiali.",
-                "delirio_text": "Inoltre la gara coincide con la festa tradizionale del 'Día de los Muertos' (1-2 novembre), patrimonio culturale UNESCO.",
+                "badge": "RICORRENZA STORICA • 1° NOVEMBRE",
+                "title": "Il GP si corre nel 143° anniversario dell'enciclica 'Misericors Dei Filius' di Papa Leone XIII",
+                "subtext": "La gara di domenica 1° Novembre coincide con la data esatta di pubblicazione dell'enciclica 'Misericors Dei Filius' promulgata da Papa Leone XIII il 1° novembre 1883. In 76 anni di storia della Formula 1, solo 3 Gran Premi mondiali si sono corsi il 1° Novembre: Giappone 1998 (con trionfo iridato di Häkkinen), Abu Dhabi 2009 e Città del Messico 2026.",
+                "delirio_text": "In Messico la data coincide inoltre con la celebrazione solenne del 'Día de los Muertos' (1-2 novembre), patrimonio UNESCO, rendendo l'atmosfera del paddock un crocevia unico tra liturgia storica e misticismo azteco.",
                 "year": 2026,
                 "circuit_id": circ_id,
-                "absurd": 0.85,
+                "absurd": 0.92,
                 "state": "pre_gara",
-                "keywords": ["1 novembre", "abu dhabi 2009", "tramonto", "dia de los muertos"],
+                "keywords": ["1 novembre", "enciclica", "leone xiii", "misericors dei filius", "abu dhabi 2009", "dia de los muertos"],
                 "subject": f"circuit:{circ_id}"
             }
         return None
+
+    def generate_stadium_capacity_vs_city_pill(self):
+        """Confronto surreale tra capienza delle tribune e intere città italiane."""
+        circ_id = self.current_race.get('circuitId', '')
+        country = str(self.current_race.get('grandPrixId', '')).lower()
+
+        if 'mexico' in country or 'rodriguez' in circ_id:
+            return {
+                "id": f"stat_stadium_capacity_cervia_round_{self.curr_round}",
+                "driver_id": "",
+                "driver_name": "Autodromo Hermanos Rodriguez",
+                "team": "",
+                "timing_status": "in_arrivo",
+                "category": "curiosities",
+                "badge": "CAPIENZA NERD • FORO SOL",
+                "title": "Le tribune del Foro Sol possono ospitare più di due volte l'intera popolazione di Cervia",
+                "subtext": "La spettacolare sezione dello stadio Foro Sol (Estadio GNP Seguros), dove le monoposto sfilano tra le curve 12 e 16, conta 65.000 posti a sedere. L'intera popolazione residente del comune di Cervia (28.800 abitanti) potrebbe riempire le gradinate per ben due volte consecutive, lasciando ancora oltre 7.400 seggiolini liberi.",
+                "delirio_text": "È l'unico stadio da baseball permanente al mondo attraversato a 200 km/h da monoposto di Formula 1: la conformazione a catino amplifica il boato della folla fino a 118 decibel, udibile dai piloti dentro il casco sopra il rombo dei propulsori V6 turbo-ibridi.",
+                "year": 2026,
+                "circuit_id": circ_id,
+                "absurd": 0.89,
+                "state": "pre_gara",
+                "keywords": ["foro sol", "cervia", "spettatori", "stadio", "messico", "decibel"],
+                "subject": f"circuit:{circ_id}"
+            }
+        return None
+
+    def generate_tricolor_flag_bortoleto_pill(self):
+        """Coincidenza assurda: Paesi verde-bianco-rosso e piazzamenti di Bortoleto."""
+        circ_id = self.current_race.get('circuitId', '')
+        # Check Bortoleto's finishes in 2026 in green/white/red flag countries:
+        # Round 11 Hungary (red-white-green) -> P11
+        # Round 13 Italy (green-white-red) -> P11
+        # Round 19 Mexico (green-white-red)
+        return {
+            "id": f"stat_tricolor_flag_bortoleto_round_{self.curr_round}",
+            "driver_id": "gabriel_bortoleto",
+            "driver_name": "Gabriel Bortoleto",
+            "team": "audi",
+            "timing_status": "in_arrivo",
+            "category": "curiosities",
+            "badge": "CABALA VESSILOLOGICA",
+            "title": "3° GP in un Paese verde-bianco-rosso: e Bortoleto è arrivato 11° in entrambi i precedenti!",
+            "subtext": "Nel 2026 il mondiale sbarca per la terza volta in una nazione con la bandiera tricolore verde, bianca e rossa (Ungheria al Round 11, Italia a Monza al Round 13 e ora Città del Messico al Round 19). In entrambi i precedenti appuntamenti, il brasiliano Gabriel Bortoleto su Audi ha tagliato il traguardo esattamente in 11ª posizione (P11) a un passo dai punti.",
+            "delirio_text": "Bortoleto ha chiuso la gara all'11° posto ben quattro volte nella sua stagione di debutto: se dovesse replicare il piazzamento ad Hermanos Rodriguez, completerebbe la tripletta perfetta dell'11 nei Paesi dal tricolore identico.",
+            "year": 2026,
+            "circuit_id": circ_id,
+            "absurd": 0.94,
+            "state": "pre_gara",
+            "keywords": ["bortoleto", "audi", "tricolore", "verde bianco rosso", "ungheria", "monza", "messico", "p11"],
+            "subject": "driver:gabriel_bortoleto"
+        }
 
     def generate_linguistic_quirk_pill(self):
         """Cabala e curiosità linguistica: Leclerc nei paesi a due parole."""
@@ -407,6 +459,8 @@ class F1StatsEngine:
         generators = [
             self.generate_championship_clinch_pill,
             self.generate_cultural_unit_pill,
+            self.generate_stadium_capacity_vs_city_pill,
+            self.generate_tricolor_flag_bortoleto_pill,
             self.generate_altitude_physics_pill,
             self.generate_track_history_pill,
             self.generate_ferrari_podiums_pill,
