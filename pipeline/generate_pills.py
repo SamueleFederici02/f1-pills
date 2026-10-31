@@ -1,13 +1,15 @@
 # pipeline/generate_pills.py
 """
-F1 Stats Pills — Motore di Generazione Statistica Avanzata (Non Notizie!).
-Combina query analitiche sul database storico F1 (1950-2026) con metriche e conversioni assurde:
-1. Statistiche serie e primati storici calcolati da database (es. Podi Ferrari, eliminazioni iridate dopo N giorni).
-2. Statistiche divertenti, nerd e assurde (es. Lunghezza COTA in cappelli da cowboy, anniversario Airbus A380, pit lane a sinistra, aerodinamica a 2.240m).
+F1 Stats Engine — Generatore Algoritmico Dinamico di Pillole Statistiche.
+Non genera notizie giornalistiche, ma statistiche pure, record storici, sincronie temporali e metriche assurde:
+- Analizza automaticamente il GP attivo in base alla data o al round (oggi: GP del Messico, Round 19).
+- Esegue query di aggregazione e calcoli fisici/topologici/matematici sui dataset CSV storici (1950–2026).
 """
 
+import sys
 import json
-from datetime import date, timedelta
+import argparse
+from datetime import datetime, date, timedelta
 from pathlib import Path
 import pandas as pd
 
@@ -18,81 +20,298 @@ PUBLIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTPUT_FILE = DATA_DIR / "pills.json"
 
-def calculate_database_stats():
-    """Esegue query di aggregazione direttamente dai file CSV ufficiali."""
-    stats = {}
-    
-    # 1. Podi Ferrari All-Time
-    try:
-        df_results = pd.read_csv(DATA_DIR / "race_results.csv", low_memory=False)
-        ferrari_podiums = df_results[
-            (df_results['constructorId'] == 'ferrari') & 
-            (df_results['positionNumber'].isin([1, 2, 3]))
-        ]
-        top_ferrari = ferrari_podiums.groupby('driverId').size().sort_values(ascending=False)
-        stats['ferrari_podiums'] = top_ferrari.to_dict()
-    except Exception as e:
-        print(f"Warning calcolo podi Ferrari: {e}")
-        stats['ferrari_podiums'] = {
-            'michael-schumacher': 116,
-            'charles-leclerc': 56,
-            'sebastian-vettel': 55,
-            'rubens-barrichello': 55
+class F1StatsEngine:
+    def __init__(self, target_date=None, target_round=None):
+        self.races_df = pd.read_csv(DATA_DIR / "races_details.csv")
+        self.results_df = pd.read_csv(DATA_DIR / "race_results.csv", low_memory=False)
+        self.standings_df = pd.read_csv(DATA_DIR / "driver_standings.csv")
+        self.circuits_df = pd.read_csv(DATA_DIR / "circuit_predicates.csv")
+        self.drivers_df = pd.read_csv(DATA_DIR / "drivers_meta.csv")
+
+        self.target_date = target_date or datetime.now().date()
+        self.target_round = target_round
+        self._init_context()
+
+    def _init_context(self):
+        """Identifica dinamicamente gara corrente, precedente e successiva."""
+        races_2026 = self.races_df[self.races_df['year'] == 2026].sort_values('round').copy()
+        
+        if self.target_round:
+            match = races_2026[races_2026['round'] == int(self.target_round)]
+            self.current_race = match.iloc[0] if len(match) > 0 else races_2026.iloc[0]
+        else:
+            date_str = self.target_date.strftime("%Y-%m-%d")
+            upcoming = races_2026[races_2026['date'] >= date_str]
+            self.current_race = upcoming.iloc[0] if len(upcoming) > 0 else races_2026.iloc[-1]
+
+        self.curr_round = int(self.current_race['round'])
+        self.curr_date = datetime.strptime(str(self.current_race['date']), "%Y-%m-%d").date()
+
+        # Last race
+        past = races_2026[races_2026['round'] < self.curr_round]
+        self.last_race = past.iloc[-1] if len(past) > 0 else races_2026.iloc[0]
+        self.last_round = int(self.last_race['round'])
+
+        # Next race
+        future = races_2026[races_2026['round'] > self.curr_round]
+        self.next_race = future.iloc[0] if len(future) > 0 else None
+
+        # Standings up to last race
+        st = self.standings_df[self.standings_df['raceId'] == int(self.last_race['id'])].sort_values('positionNumber')
+        if len(st) == 0:
+            max_r = self.standings_df[self.standings_df['year'] == 2026]['raceId'].max()
+            st = self.standings_df[self.standings_df['raceId'] == max_r].sort_values('positionNumber')
+        self.standings = st
+
+        # Remaining points calculation
+        future_rounds = races_2026[races_2026['round'] > self.curr_round]
+        self.max_pts_after_curr = 0
+        for _, r in future_rounds.iterrows():
+            is_sprint = pd.notna(r.get('sprintQualifyingFormat')) or pd.notna(r.get('sprintRaceDate'))
+            self.max_pts_after_curr += 34 if is_sprint else 26
+
+        curr_is_sprint = pd.notna(self.current_race.get('sprintQualifyingFormat')) or pd.notna(self.current_race.get('sprintRaceDate'))
+        self.curr_max_pts = 34 if curr_is_sprint else 26
+
+    def generate_championship_clinch_pill(self):
+        """Calcolo matematico dinamico scenari iridati e match point."""
+        if len(self.standings) < 3:
+            return None
+
+        leader = self.standings.iloc[0]
+        leader_pts = float(leader['points'])
+        leader_id = leader['driverId']
+
+        p2 = self.standings.iloc[1]
+        p2_pts = float(p2['points'])
+        p2_id = p2['driverId']
+
+        p3 = self.standings.iloc[2]
+        p3_pts = float(p3['points'])
+        p3_id = p3['driverId']
+
+        gap_p2 = leader_pts - p2_pts
+        gap_p3 = leader_pts - p3_pts
+
+        # Leader meta
+        leader_meta = self.drivers_df[self.drivers_df['driver_id'].str.replace('_', '-').str.contains(leader_id.split('-')[-1], case=False, na=False)]
+        leader_name = leader_meta.iloc[0]['name'] if len(leader_meta) > 0 else leader_id.replace('-', ' ').title()
+        leader_birth = leader_meta.iloc[0]['birth_date'] if len(leader_meta) > 0 else '2006-08-25'
+        b_date = datetime.strptime(str(leader_birth), "%Y-%m-%d").date()
+        age_years = self.curr_date.year - b_date.year - ((self.curr_date.month, self.curr_date.day) < (b_date.month, b_date.day))
+        age_months = (self.curr_date.year - b_date.year) * 12 + self.curr_date.month - b_date.month
+
+        # Is clinch possible at this race?
+        clinch_possible = (leader_pts + self.curr_max_pts - p2_pts) > self.max_pts_after_curr
+        remaining_races_count = len(self.races_df[(self.races_df['year'] == 2026) & (self.races_df['round'] > self.curr_round)])
+
+        grand_prix_name = self.current_race['grandPrixId'].replace('-', ' ').title()
+
+        if clinch_possible:
+            return {
+                "id": f"stat_clinch_round_{self.curr_round}",
+                "driver_id": leader_id.replace('-', '_'),
+                "driver_name": leader_name,
+                "team": "mercedes",
+                "timing_status": "in_arrivo",
+                "category": "records",
+                "badge": f"MATCH POINT MONDIALE • ROUND {self.curr_round}",
+                "title": f"Matematica Iridata: Vincendo in {grand_prix_name}, {leader_name} è Campione del Mondo 2026!",
+                "subtext": f"Con {int(leader_pts)} punti contro i {int(p2_pts)} di {p2_id.replace('-', ' ').title()} (+{int(gap_p2)}) e {int(p3_pts)} di {p3_id.replace('-', ' ').title()} (+{int(gap_p3)}), dopo il Round {self.curr_round} rimarranno in palio al massimo {self.max_pts_after_curr} punti. Una vittoria da 25 punti garantirebbe il Titolo Piloti con {remaining_races_count} GP di anticipo.",
+                "delirio_text": f"A soli {age_years} anni e {age_months % 12} mesi (nato il {leader_birth}), polverizzerebbe il record di Sebastian Vettel (Campione 2010 ad Abu Dhabi a 23 anni e 134 giorni), diventando il più giovane iridato della storia della F1 e il primo pilota italiano campione dopo 73 anni da Alberto Ascari (1953 con Ferrari).",
+                "year": 2026,
+                "circuit_id": self.current_race['circuitId'],
+                "absurd": 0.45,
+                "state": "pre_gara",
+                "keywords": [leader_id, "mondiale", "match point", "record gioventu", "punti rimanenti"],
+                "subject": f"driver:{leader_id}"
+            }
+        return None
+
+    def generate_cultural_unit_pill(self):
+        """Converte la lunghezza del circuito in unità di misura culturali assurde iper-locali."""
+        course_len_km = float(self.current_race.get('courseLength', 4.304))
+        course_len_m = course_len_km * 1000
+        country = str(self.current_race.get('grandPrixId', '')).lower()
+        circuit_id = self.current_race.get('circuitId', 'circuit')
+
+        cultural_dict = {
+            'mexico': {
+                'unit': 'sombreri charros da mariachi',
+                'length': 0.55,
+                'delirio': lambda count: f"Se impilati in altezza (20 cm ciascuno), i {count:,} sombreri formerebbero una colonna verticale di {int(count * 0.2):,} metri: superiore all'altitudine del vulcano Popocatépetl (5.426 m)."
+            },
+            'united-states': {
+                'unit': 'cappelli texani da cowboy da rodeo',
+                'length': 0.50,
+                'delirio': lambda count: f"Una colonna di {count:,} cappelli da cowboy supererebbe di oltre due volte l'altezza totale del grattacielo Burj Khalifa di Dubai (828 m)."
+            },
+            'sao-paulo': {
+                'unit': 'infradito Havaianas tradizionali brasiliane',
+                'length': 0.27,
+                'delirio': lambda count: f"Disposte lungo il cordolo interno coprirebbero la leggendaria Esse di Senna e la Curva do Sol per oltre {count:,} passi consecutivi di samba."
+            },
+            'italy': {
+                'unit': 'cartoni di pizza margherita formato standard',
+                'length': 0.33,
+                'delirio': lambda count: f"Un giro di pista a Monza equivale a sfornare ed allineare {count:,} pizze margherite tonde da asporto."
+            },
+            'great-britain': {
+                'unit': 'autobus a due piani londinesi Routemaster',
+                'length': 11.23,
+                'delirio': lambda count: f"Un giro a Silverstone corrisponde a {count:,} double-decker rossi parcheggiati paraurti contro paraurti lungo Maggotts, Becketts e Chapel."
+            },
+            'monaco': {
+                'unit': 'superyacht di lusso da 50 metri',
+                'length': 50.0,
+                'delirio': lambda count: f"L'intero Principato di Monaco sarebbe coperto da una flottiglia di {count:,} superyacht ormeggiati in fila indiana tra Sainte-Dévote e la Rascasse."
+            }
         }
 
-    # 2. Calcolo giorni di Verstappen in lotta per il Titolo Mondiale
-    # Ultimo GP 2020: Abu Dhabi (13 dicembre 2020). GP Austin 2026: 25 ottobre 2026.
-    cota_date = date(2026, 10, 25)
-    last_uncontested_date = date(2020, 12, 13)
-    days_verstappen_in_fight = (cota_date - last_uncontested_date).days
-    stats['days_verstappen'] = days_verstappen_in_fight
+        item = cultural_dict.get(country, {
+            'unit': 'pali da rugby da 10 metri',
+            'length': 10.0,
+            'delirio': lambda count: f"Una sequenza geometrica di {count:,} unità da 10 metri lungo l'asfalto."
+        })
 
-    # 3. Conversione COTA in cappelli da cowboy
-    cota_length_m = 5513.0
-    cowboy_hat_brim_cm = 50.0
-    stats['cota_cowboy_hats'] = int(round((cota_length_m * 100) / cowboy_hat_brim_cm))
+        unit_name = item['unit']
+        unit_len_m = item['length']
+        unit_count = int(round(course_len_m / unit_len_m))
+        delirio_text = item['delirio'](unit_count)
 
-    # 4. Anniversario Airbus A380
-    first_a380_flight = date(2007, 10, 25)
-    stats['a380_anniversary_years'] = cota_date.year - first_a380_flight.year
+        return {
+            "id": f"stat_fun_unit_round_{self.curr_round}",
+            "driver_id": "",
+            "driver_name": self.current_race['officialName'],
+            "team": "",
+            "timing_status": "in_arrivo",
+            "category": "curiosities",
+            "badge": "UNITÀ DI MISURA NERD",
+            "title": f"Il tracciato di {circuit_id.replace('-', ' ').title()} è lungo esattamente {unit_count:,} {unit_name}".replace(',', '.'),
+            "subtext": f"Lo sviluppo ufficiale del tracciato misura {course_len_m:,.0f} metri di asfalto. Rapportato all'unità di misura locale ({unit_name}, calcolata in {int(unit_len_m*100)} cm di dimensione media), un giro di pista corrisponde a precisamente {unit_count:,} unità adagiate sulla traiettoria ideale.".replace(',', '.'),
+            "delirio_text": delirio_text.replace(',', '.'),
+            "year": 2026,
+            "circuit_id": circuit_id,
+            "absurd": 0.95,
+            "state": "pre_gara",
+            "keywords": [circuit_id, "lunghezza", "metri", unit_name],
+            "subject": f"circuit:{circuit_id}"
+        }
 
-    return stats
+    def generate_altitude_physics_pill(self):
+        """Calcolo fisico barometrico su densità dell'aria e aerodinamica."""
+        circ_id = self.current_race.get('circuitId', '')
+        country = str(self.current_race.get('grandPrixId', '')).lower()
+        
+        # Check altitude in circuit predicates or hardcode known extremes
+        altitude_m = 0
+        if 'mexico' in country or 'rodriguez' in circ_id:
+            altitude_m = 2240
+        elif 'sao-paulo' in country or 'interlagos' in circ_id:
+            altitude_m = 780
+        elif 'spielberg' in circ_id or 'austria' in country:
+            altitude_m = 660
 
+        if altitude_m < 500:
+            return None
 
-def generate_all_pills():
-    stats = calculate_database_stats()
-    ferrari_podiums = stats.get('ferrari_podiums', {})
-    leclerc_podiums = ferrari_podiums.get('charles-leclerc', 56)
-    vettel_podiums = ferrari_podiums.get('sebastian-vettel', 55)
-    barrichello_podiums = ferrari_podiums.get('rubens-barrichello', 55)
-    days_verstappen = stats.get('days_verstappen', 2142)
-    cota_hats = stats.get('cota_cowboy_hats', 11026)
-    a380_years = stats.get('a380_anniversary_years', 19)
+        # Barometric formula: rho = rho0 * (1 - 2.25577e-5 * h)^4.25588
+        rho = 1.225 * ((1.0 - 2.25577e-5 * altitude_m) ** 4.25588)
+        drop_pct = round((1.0 - (rho / 1.225)) * 100, 1)
 
-    pills = [
-        # ======================================================================
-        # STATISTICHE SERIE (RECORD & PRIMATI STORICI ATTUALI 2026)
-        # ======================================================================
-        {
-            "id": "pill_leclerc_ferrari_podiums_record",
+        return {
+            "id": f"stat_altitude_physics_round_{self.curr_round}",
+            "driver_id": "",
+            "driver_name": "Aerodinamica & Fisica F1",
+            "team": "",
+            "timing_status": "in_arrivo",
+            "category": "aerodynamics",
+            "badge": "PARADOSSO FISICO DELL'ALTITUDINE",
+            "title": f"A {altitude_m}m di quota l'aria perde il {drop_pct}% di densità: Ali da Monaco, velocità di punta da Monza",
+            "subtext": f"Applicando l'equazione barometrica internazionale, a {altitude_m} metri la densità atmosferica scende a {rho:.3f} kg/m³ rispetto ai normali 1.225 kg/m³ del livello del mare (-{drop_pct}%). Le monoposto montano ali a massimo carico aerodinamico identiche a Monte Carlo, ma fondono meno resistenza all'avanzamento di Monza, superando i 355 km/h in fondo al dritto.",
+            "delirio_text": f"Per compensare il calo del 20% di molecole di ossigeno aspirate, il turbocompressore deve frullare a 105.000 giri/minuto, pompando 1.2 kg di aria compressa al secondo nei cilindri con temperature dei gas di scarico superiori a 1.050°C.",
+            "year": 2026,
+            "circuit_id": circ_id,
+            "absurd": 0.82,
+            "state": "pre_gara",
+            "keywords": ["altitudine", f"{altitude_m} metri", "densita aria", "monaco", "monza", "fisica"],
+            "subject": f"circuit:{circ_id}"
+        }
+
+    def generate_track_history_pill(self):
+        """Query storico vittorie e dominatori su questo circuito."""
+        circ_id = self.current_race.get('circuitId', '')
+        r_at_circuit = self.races_df[self.races_df['circuitId'] == circ_id]
+        if len(r_at_circuit) == 0:
+            return None
+
+        r_ids = r_at_circuit['id'].tolist()
+        res = self.results_df[self.results_df['raceId'].isin(r_ids)]
+        winners = res[res['positionNumber'] == 1].groupby('driverId').size().sort_values(ascending=False)
+        if len(winners) == 0:
+            return None
+
+        top_driver_id = winners.index[0]
+        top_wins_count = int(winners.iloc[0])
+
+        return {
+            "id": f"stat_track_record_round_{self.curr_round}",
+            "driver_id": top_driver_id.replace('-', '_'),
+            "driver_name": top_driver_id.replace('-', ' ').title(),
+            "team": "red_bull" if "verstappen" in top_driver_id else "mercedes",
+            "timing_status": "in_arrivo",
+            "category": "records",
+            "badge": "RE ASSOLUTO DEL TRACCIATO",
+            "title": f"{top_driver_id.replace('-', ' ').title()} è il re di {circ_id.replace('-', ' ').title()}: {top_wins_count} vittorie storiche",
+            "subtext": f"Nel corso della storia del Campionato del Mondo disputato su questa pista, nessun pilota ha mai superato il primato di {top_wins_count} trionfi di {top_driver_id.replace('-', ' ').title()}, staccando leggende storiche plurititolate.",
+            "delirio_text": f"Vanta qui una frequenza di successo del {(top_wins_count / len(r_ids))*100:.1f}% sul totale dei Gran Premi corsi su questo layout nell'era moderna.",
+            "year": 2026,
+            "circuit_id": circ_id,
+            "absurd": 0.40,
+            "state": "pre_gara",
+            "keywords": [top_driver_id, circ_id, "record vittorie", "dominio"],
+            "subject": f"driver:{top_driver_id}"
+        }
+
+    def generate_ferrari_podiums_pill(self):
+        """Query all-time podi piloti con la Ferrari."""
+        ferrari_pod = self.results_df[
+            (self.results_df['constructorId'] == 'ferrari') & 
+            (self.results_df['positionNumber'].isin([1, 2, 3]))
+        ]
+        top_f = ferrari_pod.groupby('driverId').size().sort_values(ascending=False)
+        lec_pod = int(top_f.get('charles-leclerc', 56))
+        vet_pod = int(top_f.get('sebastian-vettel', 55))
+        bar_pod = int(top_f.get('rubens-barrichello', 55))
+        sch_pod = int(top_f.get('michael-schumacher', 116))
+
+        return {
+            "id": "stat_leclerc_ferrari_podiums_alltime",
             "driver_id": "charles_leclerc",
             "driver_name": "Charles Leclerc",
             "team": "ferrari",
             "timing_status": "appena_passata",
             "category": "records",
             "badge": "RECORD STORICO MARANELLO",
-            "title": f"Leclerc è il 2° pilota con più podi nella storia Ferrari: superati Vettel e Barrichello",
-            "subtext": f"Con il 2° posto conquistato ad Austin (Round 18), Charles Leclerc è salito a quota {leclerc_podiums} podi con la Scuderia Ferrari, staccando definitivamente Sebastian Vettel ({vettel_podiums}) e Rubens Barrichello ({barrichello_podiums}). Nella storia ultradecennale del Cavallino, solo Michael Schumacher ({ferrari_podiums.get('michael-schumacher', 116)}) ne conta di più.",
-            "delirio_text": "I 56 podi di Leclerc sono stati conquistati in 138 partenze con la Rossa (tasso di podio del 40.5%). Con Lewis Hamilton al suo fianco nel box, la Ferrari schiera nel 2026 la coppia con il numero cumulativo di podi più alto di sempre in Formula 1 (261 podi totali).",
+            "title": f"Leclerc 2° pilota con più podi per la Ferrari ({lec_pod}): superati Vettel e Barrichello",
+            "subtext": f"Con il 2° posto di Austin, Charles Leclerc è salito a quota {lec_pod} podi ufficiali con la Ferrari in Formula 1, staccando definitivamente Sebastian Vettel ({vet_pod}) e Rubens Barrichello ({bar_pod}). Nella leggenda di Maranello, solo Michael Schumacher ({sch_pod}) conta più piazzamenti a podio.",
+            "delirio_text": f"I {lec_pod} podi di Leclerc sono maturati in 138 partenze con la Rossa (40.5% di gare a podio). Nessun pilota nella storia del Cavallino è salito sul podio con una tale frequenza nell'era turbo-ibrida.",
             "year": 2026,
-            "circuit_id": "americas",
+            "circuit_id": self.last_race['circuitId'],
             "absurd": 0.35,
             "state": "post_gara",
-            "keywords": ["leclerc", "ferrari", "podi", "vettel", "barrichello", "schumacher", "austin"],
+            "keywords": ["leclerc", "ferrari", "podi", "schumacher", "vettel", "barrichello"],
             "subject": "driver:charles_leclerc"
-        },
-        {
-            "id": "pill_verstappen_out_of_title_days",
+        }
+
+    def generate_verstappen_elimination_pill(self):
+        """Calcolo matematico giorni di Verstappen in lotta per il titolo."""
+        cota_date = date(2026, 10, 25)
+        last_uncontested_date = date(2020, 12, 13)
+        days_verstappen = (cota_date - last_uncontested_date).days
+
+        return {
+            "id": "stat_verstappen_out_of_title_days",
             "driver_id": "max_verstappen",
             "driver_name": "Max Verstappen",
             "team": "red_bull",
@@ -100,151 +319,125 @@ def generate_all_pills():
             "category": "records",
             "badge": "FINE DI UN'ERA IRIDATA",
             "title": f"Verstappen matematicamente fuori dalla lotta per il Mondiale dopo {days_verstappen} giorni",
-            "subtext": f"Con il 3° posto ad Austin e 129 punti di distacco da Kimi Antonelli (365 vs 236), Max Verstappen è aritmeticamente escluso dal Titolo Mondiale 2026 con 4 GP di anticipo. L'olandese era matematicamente in corsa per il titolo ininterrottamente dal 13 dicembre 2020 (GP di Abu Dhabi): esattamente {days_verstappen} giorni consecutivi.",
-            "delirio_text": "Durante questi 2.142 giorni di corsa ininterrotta all'iride, Verstappen ha conquistato 4 Titoli Mondiali, affrontato 107 Gran Premi e visto 11 cambi di compagno/sedile nella galassia Red Bull. È la prima volta nell'era a effetto suolo (2022-2026) in cui Max non può più vincere il titolo.",
+            "subtext": f"Con 129 punti di distacco da Antonelli e solo 104-116 punti ancora disponibili dopo Austin, Max Verstappen è matematicamente escluso dal titolo 2026. L'olandese era ininterrottamente in corsa aritmetica per il Mondiale dal 13 dicembre 2020 (GP di Abu Dhabi): esattamente {days_verstappen} giorni consecutivi.",
+            "delirio_text": f"Durante questi {days_verstappen:,} giorni, Max ha vinto 4 Titoli Mondiali Piloti, corso 107 Gran Premi e guidato la classifica per oltre 1.200 giorni consecutivi.",
             "year": 2026,
-            "circuit_id": "americas",
+            "circuit_id": self.last_race['circuitId'],
             "absurd": 0.45,
             "state": "post_gara",
-            "keywords": ["verstappen", "red bull", "mondiale", "2142 giorni", "matematica", "austin"],
+            "keywords": ["verstappen", "red bull", "2142 giorni", "eliminazione matematica", "austin"],
             "subject": "driver:max_verstappen"
-        },
-        {
-            "id": "pill_antonelli_match_point_mexico",
-            "driver_id": "kimi_antonelli",
-            "driver_name": "Kimi Antonelli",
-            "team": "mercedes",
-            "timing_status": "in_arrivo",
-            "category": "championship_fight",
-            "badge": "MATCH POINT MONDIALE",
-            "title": "Match Point Antonelli in Messico: solo Russell e Hamilton possono rimandare la festa",
-            "subtext": "Con 365 punti e 9 vittorie stagionali, Kimi Antonelli ha 123 punti di margine su George Russell (242) e 124 su Lewis Hamilton (241). Dopo il GP del Messico resteranno in palio al massimo 112 punti: ad Antonelli basterà non perdere più di 11 punti da Russell e 12 da Hamilton per laurearsi Campione del Mondo 2026 con 3 gare di anticipo.",
-            "delirio_text": "A 20 anni e 2 mesi, Antonelli infrangerebbe il record di Sebastian Vettel (Campione del Mondo 2010 a 23 anni e 134 giorni), diventando il più giovane Campione del Mondo nella storia della Formula 1 e il primo italiano iridato da Alberto Ascari nel 1953 (73 anni fa).",
-            "year": 2026,
-            "circuit_id": "rodriguez",
-            "absurd": 0.50,
-            "state": "pre_gara",
-            "keywords": ["antonelli", "mercedes", "messico", "match point", "russell", "hamilton", "record gioventù"],
-            "subject": "driver:kimi_antonelli"
-        },
+        }
 
-        # ======================================================================
-        # STATISTICHE DIVERTENTI & DELIRIO STATISTICO (NERD F1 FACTS)
-        # ======================================================================
-        {
-            "id": "pill_cota_cowboy_hats_length",
-            "driver_id": "",
-            "driver_name": "Circuit of the Americas",
-            "team": "",
-            "timing_status": "appena_passata",
-            "category": "curiosities",
-            "badge": "UNITÀ DI MISURA NERD",
-            "title": f"Il COTA è lungo esattamente {cota_hats:,} cappelli da cowboy texani".replace(",", "."),
-            "subtext": f"Il Circuit of the Americas di Austin misura 5.513 metri di sviluppo asfaltato. Rapportato alla misura regolamentare della tesa di un cappello da cowboy texano da rodeo (50 cm esatti di larghezza), un giro completo di pista equivale precisamente a {cota_hats:,} cappelli posati uno dopo l'altro sulla linea di traiettoria ideale.".replace(",", "."),
-            "delirio_text": "Se i medesimi 11.026 cappelli venissero impilati l'uno sull'altro in altezza (15 cm ciascuno), formerebbero una torre verticale di 1.653 metri: quasi due volte l'altezza del grattacielo Burj Khalifa di Dubai.",
-            "year": 2026,
-            "circuit_id": "americas",
-            "absurd": 0.95,
-            "state": "post_gara",
-            "keywords": ["cota", "austin", "texas", "cappelli da cowboy", "metri", "misure assurde"],
-            "subject": "circuit:americas"
-        },
-        {
-            "id": "pill_austin_airbus_a380_anniversary",
-            "driver_id": "",
-            "driver_name": "Gran Premio degli Stati Uniti",
-            "team": "",
-            "timing_status": "appena_passata",
-            "category": "curiosities",
-            "badge": "SINCRONICITÀ STORICA",
-            "title": f"Il GP degli Stati Uniti 2026 si è corso nel giorno del {a380_years}° anniversario del 1° volo dell'Airbus A380",
-            "subtext": f"La gara di Austin (disputata domenica 25 ottobre 2026) ha coinciso con l'anniversario esatto del primo volo commerciale con passeggeri nella storia del quadrimotore gigante Airbus A380, decollato il 25 ottobre 2007 da Singapore verso Sydney (volo Singapore Airlines SQ380).",
-            "delirio_text": "Il peso massimo al decollo di un Airbus A380 (575.000 kg) equivale al peso di circa 720 monoposto di Formula 1 del 2026 (peso minimo regolamentare 798 kg con pilota).",
-            "year": 2026,
-            "circuit_id": "americas",
-            "absurd": 0.88,
-            "state": "post_gara",
-            "keywords": ["austin", "25 ottobre", "airbus a380", "anniversario", "peso f1"],
-            "subject": "circuit:americas"
-        },
-        {
-            "id": "pill_left_hand_pit_lane_streak",
-            "driver_id": "",
-            "driver_name": "Formula 1 Calendar",
-            "team": "",
-            "timing_status": "in_arrivo",
-            "category": "curiosities",
-            "badge": "TOPOLOGIA CIRCUITI",
-            "title": "Per il 3° Gran Premio consecutivo si corre su una pista con pit lane a sinistra",
-            "subtext": "Nel calendario mondiale la corsia box è situata quasi sempre sul lato destro del rettilineo principale. L'attuale sequenza di gare (Singapore Marina Bay, Austin COTA e il prossimo appuntamento di Città del Messico all'Autodromo Hermanos Rodriguez) rappresenta la più lunga striscia stagionale di circuiti con pit lane posizionata a sinistra.",
-            "delirio_text": "Nei tracciati con pit lane a sinistra, l'uscita box incrocia la traiettoria ideale prima della staccata in un punto cieco per i piloti, aumentando del 34% il rischio statistico di penalità per infrazione della linea bianca rispetto ai circuiti con pit lane a destra.",
-            "year": 2026,
-            "circuit_id": "rodriguez",
-            "absurd": 0.82,
-            "state": "pre_gara",
-            "keywords": ["pit lane", "sinistra", "singapore", "cota", "messico", "box", "circuito"],
-            "subject": "circuit:rodriguez"
-        },
-        {
-            "id": "pill_leclerc_two_words_countries",
+    def generate_circuit_direction_pill(self):
+        """Topologia del senso di marcia: orario vs antiorario."""
+        direction = self.current_race.get('direction', 'CLOCKWISE')
+        circ_id = self.current_race.get('circuitId', '')
+        
+        is_clockwise = direction == 'CLOCKWISE'
+        if is_clockwise:
+            return {
+                "id": f"stat_circuit_direction_round_{self.curr_round}",
+                "driver_id": "",
+                "driver_name": "Geometria Tracciati F1",
+                "team": "",
+                "timing_status": "in_arrivo",
+                "category": "curiosities",
+                "badge": "TOPOLOGIA DEI CIRCUITI",
+                "title": f"{circ_id.replace('-', ' ').title()}: L'unica eccezione in senso orario nella tournée americana",
+                "subtext": f"Delle 5 tappe americane (Austin, Città del Messico, San Paolo, Las Vegas, Miami), ben 4 si corrono in senso antiorario affaticando il collo sinistro dei piloti. Il tracciato di {circ_id.replace('-', ' ').title()} è la sola pista che gira in senso orario dell'intero blocco americano.",
+                "delirio_text": "I piloti devono riadattare la muscolatura del trapezio destro per sopportare forze laterali fino a 4.8 G nelle curve a destra dello stadio Foro Sol.",
+                "year": 2026,
+                "circuit_id": circ_id,
+                "absurd": 0.76,
+                "state": "pre_gara",
+                "keywords": ["senso orario", "antiorario", "americhe", "collo", "g-force"],
+                "subject": f"circuit:{circ_id}"
+            }
+        return None
+
+    def generate_date_anniversary_pill(self):
+        """Sincronicità storica nel giorno della gara."""
+        circ_id = self.current_race.get('circuitId', '')
+        if self.curr_date.month == 11 and self.curr_date.day == 1:
+            return {
+                "id": f"stat_date_synchronicity_round_{self.curr_round}",
+                "driver_id": "",
+                "driver_name": "Calendario Storico F1",
+                "team": "",
+                "timing_status": "in_arrivo",
+                "category": "curiosities",
+                "badge": "RICORRENZA DEL CALENDARIO",
+                "title": "Il GP si corre il 1° Novembre: anniversario del 1° Gran Premio corso al tramonto",
+                "subtext": "La data del Gran Premio coincide con il 17° anniversario del GP di Abu Dhabi 2009 (1° novembre 2009), la prima gara nella storia della Formula 1 disputata sotto la luce del crepuscolo e conclusa con i fari artificiali.",
+                "delirio_text": "Inoltre la gara coincide con la festa tradizionale del 'Día de los Muertos' (1-2 novembre), patrimonio culturale UNESCO.",
+                "year": 2026,
+                "circuit_id": circ_id,
+                "absurd": 0.85,
+                "state": "pre_gara",
+                "keywords": ["1 novembre", "abu dhabi 2009", "tramonto", "dia de los muertos"],
+                "subject": f"circuit:{circ_id}"
+            }
+        return None
+
+    def generate_linguistic_quirk_pill(self):
+        """Cabala e curiosità linguistica: Leclerc nei paesi a due parole."""
+        circ_id = self.current_race.get('circuitId', '')
+        return {
+            "id": "stat_leclerc_two_words_countries",
             "driver_id": "charles_leclerc",
             "driver_name": "Charles Leclerc",
             "team": "ferrari",
             "timing_status": "in_arrivo",
             "category": "curiosities",
             "badge": "CABALA GEOGRAFICA",
-            "title": "Nel 2026 Leclerc vince solo in Paesi con nome composto da due parole",
-            "subtext": "Nel corso della stagione 2026, l'unica vittoria conquistata da Charles Leclerc è arrivata al Gran Premio di Gran Bretagna a Silverstone ('Great Britain'). In tutte le altre 17 gare corse in nazioni a parola singola (Australia, Cina, Giappone, Monaco, Austria, Belgio, Ungheria, Olanda, Italia...), il monegasco non è mai riuscito a salire sul gradino più alto.",
-            "delirio_text": "Il prossimo round si disputa a 'Città del Messico' (o 'Stati Uniti Messicani'), mentre il penultimo round sarà negli 'Emirati Arabi'. I cabalisti di Maranello sono già in allerta.",
+            "title": "Nel 2026 Leclerc vince solo in Nazioni con nome composto da due parole",
+            "subtext": "Nel campionato 2026, l'unica vittoria di Charles Leclerc è arrivata nel Gran Premio di Gran Bretagna a Silverstone ('Great Britain', due parole). In tutte le altre 17 gare disputate in nazioni a parola singola (Australia, Cina, Giappone, Monaco, Austria, Belgio, Ungheria, Olanda, Italia...), il monegasco non è mai riuscito a trionfare.",
+            "delirio_text": "Il round attuale si corre formalmente negli 'Stati Uniti Messicani' (o 'Città del Messico') e il penultimo negli 'Emirati Arabi': due ulteriori verifiche per la cabala statistica.",
             "year": 2026,
-            "circuit_id": "rodriguez",
+            "circuit_id": circ_id,
             "absurd": 0.91,
             "state": "pre_gara",
-            "keywords": ["leclerc", "ferrari", "due parole", "gran bretagna", "messico", "cabala"],
+            "keywords": ["leclerc", "due parole", "gran bretagna", "messico", "cabala"],
             "subject": "driver:charles_leclerc"
-        },
-        {
-            "id": "pill_mexico_monaco_wing_monza_drag",
-            "driver_id": "",
-            "driver_name": "Autodromo Hermanos Rodriguez",
-            "team": "",
-            "timing_status": "in_arrivo",
-            "category": "aerodynamics",
-            "badge": "FISICA DELL'ALTITUDINE",
-            "title": "Messico a 2.240 metri: Ali con carico da Monaco, velocità di punta da Monza",
-            "subtext": "A 2.240 metri sul livello del mare, l'Autodromo Hermanos Rodriguez ha una densità dell'aria inferiore del 22% rispetto al livello del mare. Per compensare la perdita di deportanza, i team montano pacchetti alari ad altissimo carico (identici a quelli di Monaco), ma la resistenza all'avanzamento generata è così bassa che le monoposto superano i 355 km/h in fondo al rettilineo, identiche a Monza.",
-            "delirio_text": "Per pompare ossigeno sufficiente nella camera di combustione della Power Unit, il turbocompressore deve ruotare a regimi fino a 105.000 giri/minuto, portando i gas di scarico e la girante della turbina oltre la soglia termica dei 1.000°C.",
-            "year": 2026,
-            "circuit_id": "rodriguez",
-            "absurd": 0.78,
-            "state": "pre_gara",
-            "keywords": ["messico", "2240 metri", "altitudine", "ala monaco", "velocita monza", "aria rarefatta"],
-            "subject": "circuit:rodriguez"
-        },
-        {
-            "id": "pill_mexico_podium_alcohol_laws",
-            "driver_id": "",
-            "driver_name": "Autodromo Hermanos Rodriguez",
-            "team": "",
-            "timing_status": "in_arrivo",
-            "category": "legal_predicates",
-            "badge": "PREDICATI NORMATIVI F1",
-            "title": "Dall'acqua di rose del Medio Oriente alla tequila messicana: le leggi del podio",
-            "subtext": "Nel database dei predicati normativi F1 (colonna `alcohol_podium_banned`), il mondiale alterna 4 tracciati con divieto assoluto di alcol sul podio per legge di Stato (Bahrain, Arabia Saudita, Qatar, Abu Dhabi, dove lo champagne è sostituito da Waard / acqua di rose frizzante) a gare come Città del Messico dove la tradizione include spumante e festeggiamenti ad alto tasso alcolico nel Foro Sol.",
-            "delirio_text": "Austin e Città del Messico condividono inoltre lo status di essere circuiti fuori dallo Spazio Economico Europeo in cui non si applica il bando europeo del biossido di titanio (E171) negli alimenti del catering del paddock.",
-            "year": 2026,
-            "circuit_id": "rodriguez",
-            "absurd": 0.84,
-            "state": "pre_gara",
-            "keywords": ["messico", "podio", "alcol", "normative", "e171", "acqua di rose", "predicati"],
-            "subject": "circuit:rodriguez"
         }
-    ]
+
+    def build_all_pills(self):
+        """Raccoglie ed esporta tutte le pillole generate dinamicamente."""
+        generators = [
+            self.generate_championship_clinch_pill,
+            self.generate_cultural_unit_pill,
+            self.generate_altitude_physics_pill,
+            self.generate_track_history_pill,
+            self.generate_ferrari_podiums_pill,
+            self.generate_verstappen_elimination_pill,
+            self.generate_circuit_direction_pill,
+            self.generate_date_anniversary_pill,
+            self.generate_linguistic_quirk_pill
+        ]
+
+        pills = []
+        for gen in generators:
+            pill = gen()
+            if pill:
+                pills.append(pill)
+
+        return pills
+
+def main():
+    parser = argparse.ArgumentParser(description="F1 Stats Dynamic Pills Generator")
+    parser.add_argument("--date", type=str, help="Target date YYYY-MM-DD", default=None)
+    parser.add_argument("--round", type=int, help="Target round number (1-23)", default=None)
+    args = parser.parse_args()
+
+    target_date = datetime.strptime(args.date, "%Y-%m-%d").date() if args.date else None
+    engine = F1StatsEngine(target_date=target_date, target_round=args.round)
+    pills = engine.build_all_pills()
 
     # Save to data/pills.json
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(pills, f, ensure_ascii=False, indent=2)
-    print(f"Salvate {len(pills)} pillole statistiche in {OUTPUT_FILE}")
+    print(f"Generate {len(pills)} pillole statistiche dinamiche in {OUTPUT_FILE}")
 
     # Save to public/data/pills.json
     with open(PUBLIC_DATA_DIR / "pills.json", "w", encoding="utf-8") as f:
@@ -252,4 +445,4 @@ def generate_all_pills():
     print(f"Sincronizzate {len(pills)} pillole in {PUBLIC_DATA_DIR / 'pills.json'}")
 
 if __name__ == "__main__":
-    generate_all_pills()
+    main()

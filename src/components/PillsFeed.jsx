@@ -24,14 +24,32 @@ export default function PillsFeed({
   const [selectedTiming, setSelectedTiming] = useState('all');
   const [minAbsurdity, setMinAbsurdity] = useState(0);
 
-  // Filters focused on real stats and trivia:
-  const timingFilters = [
-    { id: 'all', label: 'Tutte le Pillole 🏁' },
-    { id: 'records', label: '📊 Record & Statistiche Serie' },
-    { id: 'curiosities', label: '🦄 Curiosità Assurde & Misure Nerd' },
-    { id: 'in_arrivo', label: '🟡 GP Messico (Match Point)' },
-    { id: 'appena_passata', label: '🟢 GP Austin (Concluso)' }
-  ];
+  // Dynamic race context from calendar
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  }, []);
+
+  const upcomingRace = useMemo(() => {
+    const r26 = calendar.filter(c => String(c.season) === '2026');
+    const future = r26.filter(c => c.date >= todayStr);
+    return future.length > 0 ? future[0] : (r26.length > 0 ? r26[r26.length - 1] : null);
+  }, [calendar, todayStr]);
+
+  const pastRace = useMemo(() => {
+    const r26 = calendar.filter(c => String(c.season) === '2026');
+    const past = r26.filter(c => c.date < todayStr);
+    return past.length > 0 ? past[past.length - 1] : (r26.length > 0 ? r26[0] : null);
+  }, [calendar, todayStr]);
+
+  // Find clinch or highlight pill
+  const highlightPill = useMemo(() => {
+    return pills.find(p => p.timing_status === 'in_arrivo') || pills[0];
+  }, [pills]);
+
+  const pastHighlightPill = useMemo(() => {
+    return pills.find(p => p.timing_status === 'appena_passata') || pills[1];
+  }, [pills]);
 
   const filteredPills = useMemo(() => {
     return pills.filter(pill => {
@@ -68,7 +86,7 @@ export default function PillsFeed({
       {/* Session-Driven Broadcast Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl glass-panel-elevated border border-white/10 p-5 bg-gradient-to-r from-red-950/50 via-[#10141f] to-amber-950/30">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-          {/* Next Race */}
+          {/* Next / Current Race */}
           <div className="p-4 rounded-xl bg-black/40 border border-amber-500/30 space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2 relative">
@@ -76,15 +94,15 @@ export default function PillsFeed({
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
               <span className="text-[10px] font-mono font-bold uppercase text-amber-400 tracking-wider">
-                GARA IN ARRIVO &bull; ROUND 19
+                GARA IN ARRIVO &bull; ROUND {upcomingRace?.round || '19'}
               </span>
             </div>
             <h3 className="font-f1-display font-black text-lg text-white">
-              GP del Messico &bull; Match Point Antonelli
+              {upcomingRace?.race_name || 'GP del Messico'}
             </h3>
             <p className="text-xs text-slate-300 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span>Domenica 1 Nov 2026 &bull; Autodromo Hermanos Rodriguez (2.240m)</span>
+              <span>{upcomingRace?.day_of_week_it || 'Domenica'} {upcomingRace?.date || '2026-11-01'} &bull; {upcomingRace?.circuit_id?.replace('-', ' ').toUpperCase()}</span>
             </p>
           </div>
 
@@ -93,14 +111,14 @@ export default function PillsFeed({
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider">
-                GARA APPENA CONCLUSA &bull; ROUND 18 AUSTIN
+                GARA PRECEDENTE &bull; ROUND {pastRace?.round || '18'} {pastRace?.circuit_id?.toUpperCase()}
               </span>
             </div>
             <h3 className="font-f1-display font-black text-lg text-white">
-              Vittoria Antonelli (Pole & 1°) &bull; Leclerc 2°, Max 3°
+              {pastRace?.race_name || 'GP degli Stati Uniti'}
             </h3>
             <p className="text-xs text-slate-300">
-              9ª vittoria stagionale per Kimi Antonelli &bull; Ferrari 2ª e 4ª con Leclerc e Hamilton
+              {pastHighlightPill?.title || 'Trionfo Mercedes con Kimi Antonelli'}
             </p>
           </div>
         </div>
