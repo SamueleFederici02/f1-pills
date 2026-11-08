@@ -55,7 +55,20 @@ export default function PillsFeed({
     return future.length > 0 ? future[0] : (r26.length > 0 ? r26[r26.length - 1] : null);
   }, [calendar, todayStr]);
 
+  // Find clinch or highlight pill
+  const highlightPill = useMemo(() => {
+    return pills.find(p => p.timing_status === 'in_arrivo') || pills[0];
+  }, [pills]);
+
+  const pastHighlightPill = useMemo(() => {
+    return pills.find(p => p.timing_status === 'appena_passata') || pills[1];
+  }, [pills]);
+
   const pastRace = useMemo(() => {
+    if (pastHighlightPill?.circuit_id && calendar && Array.isArray(calendar)) {
+      const match = calendar.find(c => String(c.season) === '2026' && (c.circuit_id === pastHighlightPill.circuit_id || c.circuitId === pastHighlightPill.circuit_id));
+      if (match) return match;
+    }
     if (!calendar || !Array.isArray(calendar) || calendar.length === 0) {
       return {
         round: '18',
@@ -68,16 +81,7 @@ export default function PillsFeed({
     const r26 = calendar.filter(c => String(c.season) === '2026');
     const past = r26.filter(c => c.date < todayStr);
     return past.length > 0 ? past[past.length - 1] : (r26.length > 0 ? r26[0] : null);
-  }, [calendar, todayStr]);
-
-  // Find clinch or highlight pill
-  const highlightPill = useMemo(() => {
-    return pills.find(p => p.timing_status === 'in_arrivo') || pills[0];
-  }, [pills]);
-
-  const pastHighlightPill = useMemo(() => {
-    return pills.find(p => p.timing_status === 'appena_passata') || pills[1];
-  }, [pills]);
+  }, [calendar, todayStr, pastHighlightPill]);
 
   const filteredPills = useMemo(() => {
     return pills.filter(pill => {

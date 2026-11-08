@@ -13,6 +13,10 @@ from datetime import datetime, date, timedelta
 from pathlib import Path
 import pandas as pd
 
+def fmt_int(n):
+    """Formatta numeri interi con punto per le migliaia (standard italiano)."""
+    return f"{int(n):,}".replace(',', '.')
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 PUBLIC_DATA_DIR = BASE_DIR / "public" / "data"
@@ -135,17 +139,28 @@ class F1StatsEngine:
         self.curr_round = int(self.current_race['round'])
         self.curr_date = datetime.strptime(str(self.current_race['date']), "%Y-%m-%d").date()
 
-        # Last race
+        # Last calendar race
         past = races_2026[races_2026['round'] < self.curr_round]
         self.last_race = past.iloc[-1] if len(past) > 0 else races_2026.iloc[0]
         self.last_round = int(self.last_race['round'])
+
+        # Last completed race based on recorded results in results_df
+        completed_rounds = self.results_df[self.results_df['year'] == 2026]['round'].dropna().unique().astype(int).tolist()
+        completed_rounds.sort()
+        if completed_rounds:
+            last_comp_num = completed_rounds[-1]
+            last_comp_races = races_2026[races_2026['round'] == last_comp_num]
+            self.last_completed_race = last_comp_races.iloc[0] if len(last_comp_races) > 0 else self.last_race
+        else:
+            self.last_completed_race = self.last_race
+        self.last_completed_round = int(self.last_completed_race['round'])
 
         # Next race
         future = races_2026[races_2026['round'] > self.curr_round]
         self.next_race = future.iloc[0] if len(future) > 0 else None
 
-        # Standings up to last race
-        st = self.standings_df[self.standings_df['raceId'] == int(self.last_race['id'])].sort_values('positionNumber')
+        # Standings up to last completed race
+        st = self.standings_df[self.standings_df['raceId'] == int(self.last_completed_race['id'])].sort_values('positionNumber')
         if len(st) == 0:
             max_r = self.standings_df[self.standings_df['year'] == 2026]['raceId'].max()
             st = self.standings_df[self.standings_df['raceId'] == max_r].sort_values('positionNumber')
@@ -227,39 +242,39 @@ class F1StatsEngine:
             'mexico': {
                 'unit': 'sombreri charros da mariachi',
                 'length': 0.55,
-                'delirio': lambda count: f"Se impilati in altezza (20 cm ciascuno), i {count:,} sombreri formerebbero una colonna verticale di {int(count * 0.2):,} metri: superiore all'altitudine del vulcano Popocatépetl (5.426 m)."
+                'delirio': lambda count: f"Se impilati in altezza (20 cm ciascuno), i {fmt_int(count)} sombreri formerebbero una colonna verticale di {fmt_int(count * 0.2)} metri: superiore all'altitudine del vulcano Popocatépetl (5.426 m)."
             },
             'united-states': {
                 'unit': 'cappelli texani da cowboy da rodeo',
                 'length': 0.50,
-                'delirio': lambda count: f"Una colonna di {count:,} cappelli da cowboy supererebbe di oltre due volte l'altezza totale del grattacielo Burj Khalifa di Dubai (828 m)."
+                'delirio': lambda count: f"Una colonna di {fmt_int(count)} cappelli da cowboy supererebbe di oltre due volte l'altezza totale del grattacielo Burj Khalifa di Dubai (828 m)."
             },
             'sao-paulo': {
                 'unit': 'infradito Havaianas tradizionali brasiliane',
                 'length': 0.27,
-                'delirio': lambda count: f"Disposte lungo il cordolo interno coprirebbero la leggendaria Esse di Senna e la Curva do Sol per oltre {count:,} passi consecutivi di samba."
+                'delirio': lambda count: f"Disposte lungo il cordolo interno coprirebbero la leggendaria Esse di Senna e la Curva do Sol per oltre {fmt_int(count)} passi consecutivi di samba."
             },
             'italy': {
                 'unit': 'cartoni di pizza margherita formato standard',
                 'length': 0.33,
-                'delirio': lambda count: f"Un giro di pista a Monza equivale a sfornare ed allineare {count:,} pizze margherite tonde da asporto."
+                'delirio': lambda count: f"Un giro di pista a Monza equivale a sfornare ed allineare {fmt_int(count)} pizze margherite tonde da asporto."
             },
             'great-britain': {
                 'unit': 'autobus a due piani londinesi Routemaster',
                 'length': 11.23,
-                'delirio': lambda count: f"Un giro a Silverstone corrisponde a {count:,} double-decker rossi parcheggiati paraurti contro paraurti lungo Maggotts, Becketts e Chapel."
+                'delirio': lambda count: f"Un giro a Silverstone corrisponde a {fmt_int(count)} double-decker rossi parcheggiati paraurti contro paraurti lungo Maggotts, Becketts e Chapel."
             },
             'monaco': {
                 'unit': 'superyacht di lusso da 50 metri',
                 'length': 50.0,
-                'delirio': lambda count: f"L'intero Principato di Monaco sarebbe coperto da una flottiglia di {count:,} superyacht ormeggiati in fila indiana tra Sainte-Dévote e la Rascasse."
+                'delirio': lambda count: f"L'intero Principato di Monaco sarebbe coperto da una flottiglia di {fmt_int(count)} superyacht ormeggiati in fila indiana tra Sainte-Dévote e la Rascasse."
             }
         }
 
         item = cultural_dict.get(country, {
             'unit': 'pali da rugby da 10 metri',
             'length': 10.0,
-            'delirio': lambda count: f"Una sequenza geometrica di {count:,} unità da 10 metri lungo l'asfalto."
+            'delirio': lambda count: f"Una sequenza geometrica di {fmt_int(count)} unità da 10 metri lungo l'asfalto."
         })
 
         unit_name = item['unit']
@@ -275,9 +290,9 @@ class F1StatsEngine:
             "timing_status": "in_arrivo",
             "category": "curiosities",
             "badge": "UNITÀ DI MISURA NERD",
-            "title": f"Il tracciato di {circuit_id.replace('-', ' ').title()} è lungo esattamente {unit_count:,} {unit_name}".replace(',', '.'),
-            "subtext": f"Lo sviluppo ufficiale del tracciato misura {course_len_m:,.0f} metri di asfalto. Rapportato all'unità di misura locale ({unit_name}, calcolata in {int(unit_len_m*100)} cm di dimensione media), un giro di pista corrisponde a precisamente {unit_count:,} unità adagiate sulla traiettoria ideale.".replace(',', '.'),
-            "delirio_text": delirio_text.replace(',', '.'),
+            "title": f"Il tracciato di {circuit_id.replace('-', ' ').title()} è lungo esattamente {fmt_int(unit_count)} {unit_name}",
+            "subtext": f"Lo sviluppo ufficiale del tracciato misura {fmt_int(course_len_m)} metri di asfalto. Rapportato all'unità di misura locale ({unit_name}, calcolata in {int(unit_len_m*100)} cm di dimensione media), un giro di pista corrisponde a precisamente {fmt_int(unit_count)} unità adagiate sulla traiettoria ideale.",
+            "delirio_text": delirio_text,
             "year": 2026,
             "circuit_id": circuit_id,
             "absurd": 0.95,
@@ -300,7 +315,7 @@ class F1StatsEngine:
         elif 'spielberg' in circ_id or 'austria' in country:
             altitude_m = 660
 
-        if altitude_m < 500:
+        if altitude_m < 1500:
             return None
 
         # Barometric formula: rho = rho0 * (1 - 2.25577e-5 * h)^4.25588
@@ -342,11 +357,14 @@ class F1StatsEngine:
         top_driver_id = winners.index[0]
         top_wins_count = int(winners.iloc[0])
 
+        driver_wins = res[(res['driverId'] == top_driver_id) & (res['positionNumber'] == 1)]
+        top_team = driver_wins.groupby('constructorId').size().sort_values(ascending=False).index[0] if len(driver_wins) > 0 else 'ferrari'
+
         return {
             "id": f"stat_track_record_round_{self.curr_round}",
             "driver_id": top_driver_id.replace('-', '_'),
             "driver_name": top_driver_id.replace('-', ' ').title(),
-            "team": "red_bull" if "verstappen" in top_driver_id else "mercedes",
+            "team": top_team,
             "timing_status": "in_arrivo",
             "category": "records",
             "badge": "RE ASSOLUTO DEL TRACCIATO",
@@ -385,7 +403,7 @@ class F1StatsEngine:
             "subtext": f"Con il 2° posto di Austin, Charles Leclerc è salito a quota {lec_pod} podi ufficiali con la Ferrari in Formula 1, staccando definitivamente Sebastian Vettel ({vet_pod}) e Rubens Barrichello ({bar_pod}). Nella leggenda di Maranello, solo Michael Schumacher ({sch_pod}) conta più piazzamenti a podio.",
             "delirio_text": f"I {lec_pod} podi di Leclerc sono maturati in 138 partenze con la Rossa (40.5% di gare a podio). Nessun pilota nella storia del Cavallino è salito sul podio con una tale frequenza nell'era turbo-ibrida.",
             "year": 2026,
-            "circuit_id": self.last_race['circuitId'],
+            "circuit_id": self.last_completed_race['circuitId'],
             "absurd": 0.35,
             "state": "post_gara",
             "keywords": ["leclerc", "ferrari", "podi", "schumacher", "vettel", "barrichello"],
@@ -406,11 +424,11 @@ class F1StatsEngine:
             "timing_status": "appena_passata",
             "category": "records",
             "badge": "FINE DI UN'ERA IRIDATA",
-            "title": f"Verstappen matematicamente fuori dalla lotta per il Mondiale dopo {days_verstappen} giorni",
-            "subtext": f"Con 129 punti di distacco da Antonelli e solo 104-116 punti ancora disponibili dopo Austin, Max Verstappen è matematicamente escluso dal titolo 2026. L'olandese era ininterrottamente in corsa aritmetica per il Mondiale dal 13 dicembre 2020 (GP di Abu Dhabi): esattamente {days_verstappen} giorni consecutivi.",
-            "delirio_text": f"Durante questi {days_verstappen:,} giorni, Max ha vinto 4 Titoli Mondiali Piloti, corso 107 Gran Premi e guidato la classifica per oltre 1.200 giorni consecutivi.",
+            "title": f"Verstappen matematicamente fuori dalla lotta per il Mondiale dopo {fmt_int(days_verstappen)} giorni",
+            "subtext": f"Con 129 punti di distacco da Antonelli e solo 104-116 punti ancora disponibili dopo Austin, Max Verstappen è matematicamente escluso dal titolo 2026. L'olandese era ininterrottamente in corsa aritmetica per il Mondiale dal 13 dicembre 2020 (GP di Abu Dhabi): esattamente {fmt_int(days_verstappen)} giorni consecutivi.",
+            "delirio_text": f"Durante questi {fmt_int(days_verstappen)} giorni, Max ha vinto 4 Titoli Mondiali Piloti, corso 107 Gran Premi e guidato la classifica per oltre 1.200 giorni consecutivi.",
             "year": 2026,
-            "circuit_id": self.last_race['circuitId'],
+            "circuit_id": self.last_completed_race['circuitId'],
             "absurd": 0.45,
             "state": "post_gara",
             "keywords": ["verstappen", "red bull", "2142 giorni", "eliminazione matematica", "austin"],
@@ -422,8 +440,7 @@ class F1StatsEngine:
         direction = self.current_race.get('direction', 'CLOCKWISE')
         circ_id = self.current_race.get('circuitId', '')
         
-        is_clockwise = direction == 'CLOCKWISE'
-        if is_clockwise:
+        if direction == 'CLOCKWISE':
             return {
                 "id": f"stat_circuit_direction_round_{self.curr_round}",
                 "driver_id": "",
@@ -440,6 +457,25 @@ class F1StatsEngine:
                 "absurd": 0.76,
                 "state": "pre_gara",
                 "keywords": ["senso orario", "antiorario", "americhe", "collo", "g-force"],
+                "subject": f"circuit:{circ_id}"
+            }
+        elif direction == 'ANTI_CLOCKWISE' and ('interlagos' in circ_id or 'sao-paulo' in str(self.current_race.get('grandPrixId', ''))):
+            return {
+                "id": f"stat_circuit_direction_round_{self.curr_round}",
+                "driver_id": "",
+                "driver_name": "Geometria Tracciati F1",
+                "team": "",
+                "timing_status": "in_arrivo",
+                "category": "curiosities",
+                "badge": "SFIDA FISICA • SENSO ANTIORARIO",
+                "title": "Interlagos in senso antiorario: 71 giri con il collo sinistro sotto tortura",
+                "subtext": "Mentre l'80% dei tracciati mondiali gira in senso orario, l'Autodromo José Carlos Pace ruota in senso antiorario. Nelle curve veloci a sinistra (Curva do Sol, Ferradura e Junção), i piloti devono reggere fino a 4.5 G laterali con i muscoli del collo sinistro, insolitamente sollecitati rispetto agli standard della stagione.",
+                "delirio_text": "Durante i 71 giri della domenica, la testa del pilota — che con casco e collare Hans pesa circa 11 kg — arriva a gravare sul lato sinistro dell'abitacolo con una massa apparente di quasi 50 kg per oltre 280 volte.",
+                "year": 2026,
+                "circuit_id": circ_id,
+                "absurd": 0.76,
+                "state": "pre_gara",
+                "keywords": ["interlagos", "senso antiorario", "collo", "forza g", "muscoli"],
                 "subject": f"circuit:{circ_id}"
             }
         return None
@@ -466,7 +502,7 @@ class F1StatsEngine:
             "category": "curiosities",
             "badge": f"RICORRENZA STORICA • {self.curr_date.day}° {month_label}",
             "title": f"Il GP si corre nel {anniversary_years}° anniversario {event['name']}",
-            "subtext": f"La data della gara ({self.curr_date.day} {months_it[self.curr_date.month - 1]}) coincide con la ricorrenza di {event['desc']} ({anniversary_years} anni fa esatti, nel {event['year']}).",
+            "subtext": f"La data della gara ({self.curr_date.day} {months_it[self.curr_date.month - 1]}) coincide con {event['desc']} ({anniversary_years} anni fa esatti, nel {event['year']}).",
             "delirio_text": event.get('delirio', ''),
             "year": 2026,
             "circuit_id": circ_id,
@@ -481,7 +517,6 @@ class F1StatsEngine:
         circ_id = self.current_race.get('circuitId', '')
         item = CIRCUIT_CAPACITY_VS_CITIES.get(circ_id)
         if not item:
-            # Check if any key is in grandPrixId or circuitId
             for k, v in CIRCUIT_CAPACITY_VS_CITIES.items():
                 if k in circ_id or k in str(self.current_race.get('grandPrixId', '')):
                     item = v
@@ -498,11 +533,12 @@ class F1StatsEngine:
         if capacity > pop:
             times = capacity // pop
             rem = capacity % pop
-            comparison_phrase = f"più di {times} volte" if times > 1 else "l'intera"
-            details = f"L'intera popolazione residente del comune di {city} ({pop:,} abitanti) potrebbe riempire le gradinate per {comparison_phrase} consecutive, lasciando ancora oltre {rem:,} seggiolini liberi.".replace(',', '.')
+            comparison_phrase = "per una volta intera" if times == 1 else f"per più di {times} volte consecutive"
+            rem_phrase = f", lasciando ancora oltre {fmt_int(rem)} seggiolini liberi" if rem > 0 else ""
+            details = f"L'intera popolazione residente del comune di {city} ({fmt_int(pop)} abitanti) potrebbe riempire le gradinate {comparison_phrase}{rem_phrase}."
         else:
             pct = round((capacity / pop) * 100, 1)
-            details = f"Le tribune potrebbero accogliere contemporaneamente il {pct}% di tutti gli abitanti della città di {city} ({pop:,} residenti).".replace(',', '.')
+            details = f"Le tribune potrebbero accogliere contemporaneamente il {pct}% di tutti gli abitanti della città di {city} ({fmt_int(pop)} residenti)."
 
         return {
             "id": f"stat_stadium_capacity_round_{self.curr_round}",
@@ -513,7 +549,7 @@ class F1StatsEngine:
             "category": "curiosities",
             "badge": f"CAPIENZA NERD • {circ_id.upper()}",
             "title": f"Le {section_name} possono ospitare tutta la popolazione di {city}",
-            "subtext": f"La struttura conta una capienza omologata di {capacity:,} spettatori. {details}".replace(',', '.'),
+            "subtext": f"La struttura conta una capienza omologata di {fmt_int(capacity)} spettatori. {details}",
             "delirio_text": item.get('delirio', ''),
             "year": 2026,
             "circuit_id": circ_id,
@@ -526,10 +562,10 @@ class F1StatsEngine:
     def generate_tricolor_flag_bortoleto_pill(self):
         """Coincidenza assurda: Paesi verde-bianco-rosso e piazzamenti di Bortoleto."""
         circ_id = self.current_race.get('circuitId', '')
-        # Check Bortoleto's finishes in 2026 in green/white/red flag countries:
-        # Round 11 Hungary (red-white-green) -> P11
-        # Round 13 Italy (green-white-red) -> P11
-        # Round 19 Mexico (green-white-red)
+        country = str(self.current_race.get('grandPrixId', '')).lower()
+        if not any(x in country or x in circ_id for x in ['mexico', 'rodriguez', 'italy', 'monza', 'hungary', 'hungaroring']):
+            return None
+
         return {
             "id": f"stat_tricolor_flag_bortoleto_round_{self.curr_round}",
             "driver_id": "gabriel_bortoleto",
@@ -549,25 +585,71 @@ class F1StatsEngine:
             "subject": "driver:gabriel_bortoleto"
         }
 
-    def generate_linguistic_quirk_pill(self):
-        """Cabala e curiosità linguistica: Leclerc nei paesi a due parole."""
+    def generate_home_hero_pill(self):
+        """Pillola idolo di casa per i piloti che corrono il GP nella propria nazione."""
+        country = str(self.current_race.get('grandPrixId', '')).lower()
         circ_id = self.current_race.get('circuitId', '')
+        
+        if 'sao-paulo' in country or 'interlagos' in circ_id or 'brazil' in country:
+            return {
+                "id": f"stat_home_hero_bortoleto_round_{self.curr_round}",
+                "driver_id": "gabriel_bortoleto",
+                "driver_name": "Gabriel Bortoleto",
+                "team": "audi",
+                "timing_status": "in_arrivo",
+                "category": "curiosities",
+                "badge": "EROE DI CASA • SÃO PAULO",
+                "title": "Gabriel Bortoleto a Interlagos: il primo brasiliano al GP di casa dopo 9 anni",
+                "subtext": "Nato a San Paolo a pochi chilometri dal circuito di Interlagos, Gabriel Bortoleto su Audi Revolut riporta la bandiera verde-oro sulla griglia di partenza del GP del Brasile. L'ultimo pilota brasiliano a disputare il Gran Premio di casa era stato Felipe Massa nel 2017.",
+                "delirio_text": "Bortoleto ha mosso i suoi primissimi passi sui kart sul vicino Kartodromo Ayrton Senna, adiacente al rettilineo opposto di Interlagos, a soli 6 anni d'età.",
+                "year": 2026,
+                "circuit_id": circ_id,
+                "absurd": 0.70,
+                "state": "pre_gara",
+                "keywords": ["bortoleto", "audi", "interlagos", "brasile", "eroe di casa", "massa"],
+                "subject": "driver:gabriel_bortoleto"
+            }
+        return None
+
+    def generate_linguistic_quirk_pill(self):
+        """Cabala e curiosità linguistica: Leclerc nei GP con nome a due parole."""
+        gp_id = str(self.current_race.get('grandPrixId', '')).lower()
+        circ_id = self.current_race.get('circuitId', '').lower()
+        
+        two_word_gps = {
+            'sao-paulo': ('San Paolo', "del Gran Premio di San Paolo ad Interlagos"),
+            'united-states': ('Stati Uniti', "del Gran Premio degli Stati Uniti ad Austin"),
+            'great-britain': ('Gran Bretagna', "del Gran Premio di Gran Bretagna a Silverstone"),
+            'abu-dhabi': ('Emirati Arabi', "del Gran Premio degli Emirati Arabi ad Abu Dhabi"),
+            'saudi-arabia': ('Arabia Saudita', "del Gran Premio dell'Arabia Saudita a Jeddah"),
+        }
+        
+        match = None
+        for k, v in two_word_gps.items():
+            if k in gp_id or k in circ_id:
+                match = v
+                break
+                
+        if not match:
+            return None
+
+        two_word_name, venue_text = match
         return {
-            "id": "stat_leclerc_two_words_countries",
+            "id": f"stat_leclerc_two_words_round_{self.curr_round}",
             "driver_id": "charles_leclerc",
             "driver_name": "Charles Leclerc",
             "team": "ferrari",
             "timing_status": "in_arrivo",
             "category": "curiosities",
             "badge": "CABALA GEOGRAFICA",
-            "title": "Nel 2026 Leclerc vince solo in Nazioni con nome composto da due parole",
-            "subtext": "Nel campionato 2026, l'unica vittoria di Charles Leclerc è arrivata nel Gran Premio di Gran Bretagna a Silverstone ('Great Britain', due parole). In tutte le altre 17 gare disputate in nazioni a parola singola (Australia, Cina, Giappone, Monaco, Austria, Belgio, Ungheria, Olanda, Italia...), il monegasco non è mai riuscito a trionfare.",
-            "delirio_text": "Il round attuale si corre formalmente negli 'Stati Uniti Messicani' (o 'Città del Messico') e il penultimo negli 'Emirati Arabi': due ulteriori verifiche per la cabala statistica.",
+            "title": f"Nel 2026 Leclerc vince solo dove il nome ha due parole: tocca a {two_word_name}?",
+            "subtext": f"Nel Mondiale 2026 l'unico trionfo di Charles Leclerc con la Ferrari è arrivato a Silverstone nel Gran Premio di 'Gran Bretagna' (due parole). In tutti i round corsi in nazioni a parola singola (Monaco, Spagna, Austria, Belgio, Ungheria, Olanda, Italia...), il monegasco non è mai salito sul gradino più alto. Nel weekend {venue_text}, la cabala si riapre.",
+            "delirio_text": f"Oltre a Silverstone e {two_word_name}, nel calendario 2026 restano soltanto gli Emirati Arabi (Round 24) a presentare una denominazione a doppia parola.",
             "year": 2026,
             "circuit_id": circ_id,
             "absurd": 0.91,
             "state": "pre_gara",
-            "keywords": ["leclerc", "due parole", "gran bretagna", "messico", "cabala"],
+            "keywords": ["leclerc", "ferrari", "due parole", two_word_name.lower(), "cabala", "vittoria"],
             "subject": "driver:charles_leclerc"
         }
 
@@ -578,6 +660,7 @@ class F1StatsEngine:
             self.generate_cultural_unit_pill,
             self.generate_stadium_capacity_vs_city_pill,
             self.generate_tricolor_flag_bortoleto_pill,
+            self.generate_home_hero_pill,
             self.generate_altitude_physics_pill,
             self.generate_track_history_pill,
             self.generate_ferrari_podiums_pill,
@@ -586,6 +669,14 @@ class F1StatsEngine:
             self.generate_date_anniversary_pill,
             self.generate_linguistic_quirk_pill
         ]
+
+        pills = []
+        for gen in generators:
+            pill = gen()
+            if pill:
+                pills.append(pill)
+
+        return pills
 
         pills = []
         for gen in generators:
