@@ -10,6 +10,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,6 +23,9 @@ jobs:
 
       - name: Install Python Dependencies
         run: pip install pandas numpy
+
+      - name: Download & Sync Latest F1DB Data
+        run: python pipeline/download_f1db.py
 
       - name: Generate & Export F1 Pills Data
         run: |
@@ -46,3 +51,11 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           PROJECT_ID: sports-pills
+
+      - name: Commit Updated Data Back to Repo
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ public/data/
+          git diff --staged --quiet || (git commit -m "chore(auto): update F1DB data and pills for latest race [skip ci]" && git push origin main)

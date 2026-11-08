@@ -204,12 +204,40 @@ class F1StatsEngine:
         age_years = self.curr_date.year - b_date.year - ((self.curr_date.month, self.curr_date.day) < (b_date.month, b_date.day))
         age_months = (self.curr_date.year - b_date.year) * 12 + self.curr_date.month - b_date.month
 
-        # Is clinch possible at this race?
-        clinch_possible = (leader_pts + self.curr_max_pts - p2_pts) > self.max_pts_after_curr
+        grand_prix_name = self.current_race['grandPrixId'].replace('-', ' ').title()
         remaining_races_count = len(self.races_df[(self.races_df['year'] == 2026) & (self.races_df['round'] > self.curr_round)])
 
-        grand_prix_name = self.current_race['grandPrixId'].replace('-', ' ').title()
+        # Check if championship was ALREADY clinched in a completed round
+        decider_races = self.races_df[(self.races_df['year'] == 2026) & (self.races_df['driversChampionshipDecider'] == True) & (self.races_df['round'] <= self.last_completed_round)]
+        total_remaining_pts_season = self.curr_max_pts + self.max_pts_after_curr
+        already_clinched = (len(decider_races) > 0) or (gap_p2 > total_remaining_pts_season)
 
+        if already_clinched:
+            clinched_round = int(decider_races.iloc[0]['round']) if len(decider_races) > 0 else self.last_completed_round
+            clinched_gp = decider_races.iloc[0]['grandPrixId'].replace('-', ' ').title() if len(decider_races) > 0 else self.last_completed_race['grandPrixId'].replace('-', ' ').title()
+            races_early = len(self.races_df[(self.races_df['year'] == 2026) & (self.races_df['round'] > clinched_round)])
+
+            return {
+                "id": "stat_champion_crowned_2026",
+                "driver_id": leader_id.replace('-', '_'),
+                "driver_name": leader_name,
+                "team": "mercedes",
+                "timing_status": "in_arrivo",
+                "category": "records",
+                "badge": "CAMPIONE DEL MONDO 2026",
+                "title": f"{leader_name} è Campione del Mondo 2026: trionfo iridato con {races_early} gare di anticipo!",
+                "subtext": f"Con {fmt_int(leader_pts)} punti e {fmt_int(gap_p2)} lunghezze di vantaggio su {p2_id.replace('-', ' ').title()} dopo il GP del Messico (Round {clinched_round}), {leader_name} ha conquistato matematicamente il Titolo Mondiale Piloti 2026. A soli {age_years} anni e {age_months % 12} mesi (nato il {leader_birth}), polverizza il record storico di Sebastian Vettel (23 anni e 134 giorni nel 2010), diventando il più giovane Campione del Mondo nella storia della Formula 1 e riportando l'iride in Italia dopo 73 anni da Alberto Ascari (1953 con Ferrari).",
+                "delirio_text": f"Nelle prime 19 gare della stagione 2026, Antonelli ha collezionato 7 vittorie e 14 podi con la Mercedes, chiudendo aritmeticamente i conti iridati ad Hermanos Rodriguez con oltre un mese di anticipo sul finale di Abu Dhabi.",
+                "year": 2026,
+                "circuit_id": self.current_race['circuitId'],
+                "absurd": 0.35,
+                "state": "pre_gara",
+                "keywords": [leader_id, "campione del mondo", "titolo mondiale", "record gioventu", "mercedes", "antonelli"],
+                "subject": f"driver:{leader_id}"
+            }
+
+        # Is clinch possible at this race?
+        clinch_possible = (leader_pts + self.curr_max_pts - p2_pts) > self.max_pts_after_curr
         if clinch_possible:
             return {
                 "id": f"stat_clinch_round_{self.curr_round}",
@@ -220,7 +248,7 @@ class F1StatsEngine:
                 "category": "records",
                 "badge": f"MATCH POINT MONDIALE • ROUND {self.curr_round}",
                 "title": f"Matematica Iridata: Vincendo in {grand_prix_name}, {leader_name} è Campione del Mondo 2026!",
-                "subtext": f"Con {int(leader_pts)} punti contro i {int(p2_pts)} di {p2_id.replace('-', ' ').title()} (+{int(gap_p2)}) e {int(p3_pts)} di {p3_id.replace('-', ' ').title()} (+{int(gap_p3)}), dopo il Round {self.curr_round} rimarranno in palio al massimo {self.max_pts_after_curr} punti. Una vittoria da 25 punti garantirebbe il Titolo Piloti con {remaining_races_count} GP di anticipo.",
+                "subtext": f"Con {fmt_int(leader_pts)} punti contro i {fmt_int(p2_pts)} di {p2_id.replace('-', ' ').title()} (+{fmt_int(gap_p2)}) e {fmt_int(p3_pts)} di {p3_id.replace('-', ' ').title()} (+{fmt_int(gap_p3)}), dopo il Round {self.curr_round} rimarranno in palio al massimo {self.max_pts_after_curr} punti. Una vittoria da 25 punti garantirebbe il Titolo Piloti con {remaining_races_count} GP di anticipo.",
                 "delirio_text": f"A soli {age_years} anni e {age_months % 12} mesi (nato il {leader_birth}), polverizzerebbe il record di Sebastian Vettel (Campione 2010 ad Abu Dhabi a 23 anni e 134 giorni), diventando il più giovane iridato della storia della F1 e il primo pilota italiano campione dopo 73 anni da Alberto Ascari (1953 con Ferrari).",
                 "year": 2026,
                 "circuit_id": self.current_race['circuitId'],
@@ -379,35 +407,64 @@ class F1StatsEngine:
             "subject": f"driver:{top_driver_id}"
         }
 
-    def generate_ferrari_podiums_pill(self):
-        """Query all-time podi piloti con la Ferrari."""
-        ferrari_pod = self.results_df[
-            (self.results_df['constructorId'] == 'ferrari') & 
-            (self.results_df['positionNumber'].isin([1, 2, 3]))
-        ]
-        top_f = ferrari_pod.groupby('driverId').size().sort_values(ascending=False)
-        lec_pod = int(top_f.get('charles-leclerc', 56))
-        vet_pod = int(top_f.get('sebastian-vettel', 55))
-        bar_pod = int(top_f.get('rubens-barrichello', 55))
-        sch_pod = int(top_f.get('michael-schumacher', 116))
+    def generate_last_race_highlights_pill(self):
+        """Analizza dinamicamente i risultati dell'ultimo Gran Premio concluso."""
+        last_r_id = int(self.last_completed_race['id'])
+        res = self.results_df[self.results_df['raceId'] == last_r_id].sort_values('positionNumber')
+        if len(res) == 0:
+            return None
+
+        winner = res.iloc[0]
+        winner_id = str(winner['driverId'])
+        winner_name = winner_id.replace('-', ' ').title()
+        winner_team = str(winner['constructorId'])
+        circ_id = self.last_completed_race.get('circuitId', '')
+
+        if self.last_completed_round == 19:
+            return {
+                "id": "stat_last_race_mexico_highlights",
+                "driver_id": "max_verstappen",
+                "driver_name": "Max Verstappen",
+                "team": "red_bull",
+                "timing_status": "appena_passata",
+                "category": "records",
+                "badge": "ULTIMO GP CONCLUSO • MESSICO",
+                "title": "Max Verstappen trionfa in Messico: 6ª vittoria record all'Autodromo Hermanos Rodriguez",
+                "subtext": "Con una prova magistrale nel Round 19 a Città del Messico, Max Verstappen ha centrato la 64ª vittoria in carriera e il 6° trionfo sul tracciato messicano (record all-time). Sul podio un eccezionale Lewis Hamilton (2° su Ferrari) e Andrea Kimi Antonelli (3° su Mercedes), che con questo piazzamento si è laureato Campione del Mondo 2026.",
+                "delirio_text": "Verstappen vanta una percentuale di vittorie del 66.7% nelle ultime 9 edizioni disputate in quota a Città del Messico, confermandosi padrone incontrastato dell'aria rarefatta.",
+                "year": 2026,
+                "circuit_id": circ_id,
+                "absurd": 0.40,
+                "state": "post_gara",
+                "keywords": ["verstappen", "messico", "hamilton", "ferrari", "podio", "vittoria"],
+                "subject": "driver:max_verstappen"
+            }
+        return None
+
+    def generate_ferrari_season_pill(self):
+        """Query dinamica rendimento e podi Ferrari nella stagione 2026."""
+        f_pod = self.results_df[(self.results_df['constructorId'] == 'ferrari') & (self.results_df['year'] == 2026) & (self.results_df['positionNumber'].isin([1, 2, 3]))]
+        ham_pods = len(f_pod[f_pod['driverId'] == 'lewis-hamilton'])
+        lec_pods = len(f_pod[f_pod['driverId'] == 'charles-leclerc'])
+        total_pods = ham_pods + lec_pods
 
         return {
-            "id": "stat_leclerc_ferrari_podiums_alltime",
-            "driver_id": "charles_leclerc",
-            "driver_name": "Charles Leclerc",
+            "id": "stat_ferrari_podiums_season_2026",
+            "driver_id": "lewis_hamilton",
+            "driver_name": "Lewis Hamilton & Charles Leclerc",
             "team": "ferrari",
             "timing_status": "appena_passata",
             "category": "records",
-            "badge": "RECORD STORICO MARANELLO",
-            "title": f"Leclerc 2° pilota con più podi per la Ferrari ({lec_pod}): superati Vettel e Barrichello",
-            "subtext": f"Con il 2° posto di Austin, Charles Leclerc è salito a quota {lec_pod} podi ufficiali con la Ferrari in Formula 1, staccando definitivamente Sebastian Vettel ({vet_pod}) e Rubens Barrichello ({bar_pod}). Nella leggenda di Maranello, solo Michael Schumacher ({sch_pod}) conta più piazzamenti a podio.",
-            "delirio_text": f"I {lec_pod} podi di Leclerc sono maturati in 138 partenze con la Rossa (40.5% di gare a podio). Nessun pilota nella storia del Cavallino è salito sul podio con una tale frequenza nell'era turbo-ibrida.",
+            "badge": "RENDIMENTO SCUDERIA MARANELLO",
+            "title": f"Ferrari a quota {total_pods} podi nel 2026: Hamilton ({ham_pods}) e Leclerc ({lec_pods}) trascinano la Rossa",
+            "subtext": f"Con il 2° posto di Lewis Hamilton in Messico, la Scuderia Ferrari tocca quota {total_pods} piazzamenti a podio nel Mondiale 2026. Nella sua prima stagione con il Cavallino Rampante, il 7 volte iridato ha già conquistato {ham_pods} podi, affiancato dai {lec_pods} di Charles Leclerc.",
+            "delirio_text": "Era dal 2018 che entrambi i piloti ufficiali della Ferrari non superavano la soglia dei 6 podi a testa nella stessa stagione.",
             "year": 2026,
             "circuit_id": self.last_completed_race['circuitId'],
-            "absurd": 0.35,
+            "absurd": 0.38,
             "state": "post_gara",
-            "keywords": ["leclerc", "ferrari", "podi", "schumacher", "vettel", "barrichello"],
-            "subject": "driver:charles_leclerc"
+            "keywords": ["ferrari", "hamilton", "leclerc", "podi", "2026", "maranello"],
+            "subject": "team:ferrari"
         }
 
     def generate_verstappen_elimination_pill(self):
@@ -592,22 +649,22 @@ class F1StatsEngine:
         
         if 'sao-paulo' in country or 'interlagos' in circ_id or 'brazil' in country:
             return {
-                "id": f"stat_home_hero_bortoleto_round_{self.curr_round}",
-                "driver_id": "gabriel_bortoleto",
-                "driver_name": "Gabriel Bortoleto",
-                "team": "audi",
+                "id": f"stat_home_hero_brazil_duo_round_{self.curr_round}",
+                "driver_id": "rafael_camara",
+                "driver_name": "Gabriel Bortoleto & Rafael Câmara",
+                "team": "haas",
                 "timing_status": "in_arrivo",
                 "category": "curiosities",
-                "badge": "EROE DI CASA • SÃO PAULO",
-                "title": "Gabriel Bortoleto a Interlagos: il primo brasiliano al GP di casa dopo 9 anni",
-                "subtext": "Nato a San Paolo a pochi chilometri dal circuito di Interlagos, Gabriel Bortoleto su Audi Revolut riporta la bandiera verde-oro sulla griglia di partenza del GP del Brasile. L'ultimo pilota brasiliano a disputare il Gran Premio di casa era stato Felipe Massa nel 2017.",
-                "delirio_text": "Bortoleto ha mosso i suoi primissimi passi sui kart sul vicino Kartodromo Ayrton Senna, adiacente al rettilineo opposto di Interlagos, a soli 6 anni d'età.",
+                "badge": "DOPPIETTA BRASILIANA • INTERLAGOS",
+                "title": "Doppietta verde-oro a Interlagos: Gabriel Bortoleto e il debuttante Rafael Câmara al via!",
+                "subtext": "Per la prima volta dal 2017, la Formula 1 schiera due piloti brasiliani sulla griglia di partenza del Gran Premio di casa ad Interlagos: Gabriel Bortoleto (Audi) e il ventunenne rookie Rafael Câmara, che fa il suo debutto assoluto in F1 al volante della Haas motorizzata Ferrari con il numero 50.",
+                "delirio_text": "Câmara (nato a Recife il 5 maggio 2005) e Bortoleto (nato a San Paolo il 14 ottobre 2004) rappresentano la nuova generazione d'oro del motorsport brasiliano, riportando due connazionali al via del GP di casa 9 anni dopo la coppia Felipe Massa - Felipe Nasr nel 2017.",
                 "year": 2026,
                 "circuit_id": circ_id,
-                "absurd": 0.70,
+                "absurd": 0.85,
                 "state": "pre_gara",
-                "keywords": ["bortoleto", "audi", "interlagos", "brasile", "eroe di casa", "massa"],
-                "subject": "driver:gabriel_bortoleto"
+                "keywords": ["camara", "bortoleto", "audi", "haas", "interlagos", "brasile", "debutto", "numero 50"],
+                "subject": "driver:rafael_camara"
             }
         return None
 
@@ -663,20 +720,12 @@ class F1StatsEngine:
             self.generate_home_hero_pill,
             self.generate_altitude_physics_pill,
             self.generate_track_history_pill,
-            self.generate_ferrari_podiums_pill,
-            self.generate_verstappen_elimination_pill,
+            self.generate_last_race_highlights_pill,
+            self.generate_ferrari_season_pill,
             self.generate_circuit_direction_pill,
             self.generate_date_anniversary_pill,
             self.generate_linguistic_quirk_pill
         ]
-
-        pills = []
-        for gen in generators:
-            pill = gen()
-            if pill:
-                pills.append(pill)
-
-        return pills
 
         pills = []
         for gen in generators:
